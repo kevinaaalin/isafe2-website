@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iSAFE 2.0 | 產業數位治理工作台</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="iSAFE 2.0 navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">iS</div>
+          <div>
+            <div class="brand-name">iSAFE 2.0</div>
+            <div class="brand-sub">Governance OS</div>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Main sections">
+          <button class="nav-item active" data-view="overview" type="button">
+            <span class="nav-icon" aria-hidden="true">⌂</span>
+            <span>治理總覽</span>
+          </button>
+          <button class="nav-item" data-view="gate" type="button">
+            <span class="nav-icon" aria-hidden="true">◆</span>
+            <span>Gate 狀態機</span>
+          </button>
+          <button class="nav-item" data-view="passport" type="button">
+            <span class="nav-icon" aria-hidden="true">▣</span>
+            <span>PGP 案件護照</span>
+          </button>
+          <button class="nav-item" data-view="risk" type="button">
+            <span class="nav-icon" aria-hidden="true">◎</span>
+            <span>RiskScore</span>
+          </button>
+          <button class="nav-item" data-view="glevel" type="button">
+            <span class="nav-icon" aria-hidden="true">★</span>
+            <span>G-Level 評級</span>
+          </button>
+          <button class="nav-item" data-view="association" type="button">
+            <span class="nav-icon" aria-hidden="true">◫</span>
+            <span>公會治理中心</span>
+          </button>
+          <button class="nav-item" data-view="architecture" type="button">
+            <span class="nav-icon" aria-hidden="true">⌬</span>
+            <span>技術架構</span>
+          </button>
+          <button class="nav-item" data-view="sbir" type="button">
+            <span class="nav-icon" aria-hidden="true">▤</span>
+            <span>SBIR V2.1</span>
+          </button>
+          <button class="nav-item" data-view="business" type="button">
+            <span class="nav-icon" aria-hidden="true">₿</span>
+            <span>商業模式</span>
+          </button>
+        </nav>
+
+        <section class="sidebar-panel">
+          <div class="panel-label">系統定位</div>
+          <p>安智科技不是媒合平台，而是室內裝修產業的治理科技公司。</p>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">Aegis Intelligence Technology</div>
+            <h1 id="view-title">台灣室內裝修產業治理基礎設施</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" id="printBtn" type="button" title="列印目前畫面" aria-label="列印目前畫面">⎙</button>
+            <button class="primary-action" id="demoCycleBtn" type="button">案件推進</button>
+          </div>
+        </header>
+
+        <section class="view active" id="overview" aria-labelledby="overview-title">
+          <div class="status-strip">
+            <article class="metric">
+              <span class="metric-label">治理案件</span>
+              <strong>128</strong>
+              <span class="metric-note positive">+18 本月新增</span>
+            </article>
+            <article class="metric">
+              <span class="metric-label">平均 RiskScore</span>
+              <strong>31</strong>
+              <span class="metric-note">中低風險</span>
+            </article>
+            <article class="metric">
+              <span class="metric-label">G-Level 認證</span>
+              <strong>42</strong>
+              <span class="metric-note positive">設計師 / 工程商</span>
+            </article>
+            <article class="metric">
+              <span class="metric-label">公會試點</span>
+              <strong>3</strong>
+              <span class="metric-note">待補正式名單</span>
+            </article>
+          </div>
+
+          <div class="layout-grid overview-grid">
+            <article class="surface span-7">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Product Architecture</p>
+                  <h2 id="overview-title">四層治理產品架構</h2>
+                </div>
+                <span class="status-pill">SSOT v1</span>
+              </div>
+              <div class="architecture-flow" aria-label="StyleMatch AI to TWCID architecture">
+                <div class="flow-node warm">
+                  <strong>StyleMatch AI</strong>
+                  <span>需求入口</span>
+                  <small>把屋主需求、風格、預算與限制轉成可治理資料</small>
+                </div>
+                <div class="flow-arrow" aria-hidden="true">→</div>
+                <div class="flow-node teal selected">
+                  <strong>iSAFE 2.0</strong>
+                  <span>治理中台</span>
+                  <small>Gate、PGP、檢核、風險、履約與爭議預防</small>
+                </div>
+                <div class="flow-arrow" aria-hidden="true">→</div>
+                <div class="flow-node coral">
+                  <strong>Governance Credit</strong>
+                  <span>信用引擎</span>
+                  <small>讓履約紀錄可被認證、金融、保險採用</small>
+                </div>
+                <div class="flow-arrow" aria-hidden="true">→</div>
+                <div class="flow-node">
+                  <strong>TWCID</strong>
+                  <span>產業入口</span>
+                  <small>公會、設計師、品牌、內容與會員通路</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="surface span-5">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Operating Thesis</p>
+                  <h2>不是接案，是治理資料層</h2>
+                </div>
+              </div>
+              <ul class="check-list">
+                <li>iSAFE 必須與 TWCID 媒合平台架構性脫鉤。</li>
+                <li>公會不是通路，而是產業治理中心共同推動者。</li>
+                <li>Gate 狀態、PGP、RiskScore 形成可稽核資料。</li>
+                <li>Checklist 與 Evidence Engine 補齊 SBIR V2.1 技術深度。</li>
+                <li>G-Level 與 Governance Credit 承接商業化價值。</li>
+              </ul>
+            </article>
+
+            <article class="surface span-4">
+              <p class="section-kicker">2026 MVP</p>
+              <h2>Gate Engine</h2>
+              <p>案件不可跳關，關鍵文件與責任確認後才可推進。</p>
+            </article>
+            <article class="surface span-4">
+              <p class="section-kicker">2027-2028</p>
+              <h2>AI Governance</h2>
+              <p>RiskScore、AI Agent、AI 監工與公會治理中心進入規模化。</p>
+            </article>
+            <article class="surface span-4">
+              <p class="section-kicker">2029-2035</p>
+              <h2>TIGI</h2>
+              <p>串接銀行、保險、都更危老與 iSAFE 3.0。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="gate" aria-labelledby="gate-title">
+          <div class="layout-grid">
+            <article class="surface span-8">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Irreversible State Machine</p>
+                  <h2 id="gate-title">不可回溯 Gate 狀態機</h2>
+                </div>
+                <span class="status-pill" id="currentGateLabel">目前：D3 報價確認</span>
+              </div>
+              <div class="gate-machine" id="gateMachine"></div>
+            </article>
+            <article class="surface span-4">
+              <p class="section-kicker">Gate Rule</p>
+              <h2>通過條件</h2>
+              <div class="rule-stack" id="gateRules"></div>
+            </article>
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Audit Trail</p>
+                  <h2>案件狀態異動紀錄</h2>
+                </div>
+              </div>
+              <div class="audit-table" id="auditRows"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="passport" aria-labelledby="passport-title">
+          <div class="layout-grid">
+            <article class="surface span-5">
+              <p class="section-kicker">Project Governance Passport</p>
+              <h2 id="passport-title">PGP 案件治理護照</h2>
+              <div class="passport-card">
+              <div class="passport-header">
+                <div>
+                  <span>PGP-ID</span>
+                    <strong>PGP-2026-0614-027</strong>
+                  </div>
+                  <span class="status-pill good">Active</span>
+                </div>
+              <dl class="passport-meta">
+                <div><dt>案件</dt><dd>台北住宅整修</dd></div>
+                <div><dt>目前 Gate</dt><dd>D3 報價確認</dd></div>
+                <div><dt>設計師</dt><dd>iSAFE 認證會員</dd></div>
+                <div><dt>Evidence</dt><dd>18 筆存證</dd></div>
+              </dl>
+            </div>
+            </article>
+            <article class="surface span-7">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Checklist24</p>
+                  <h2>治理檢核進度</h2>
+                </div>
+                <span class="status-pill">18 / 24</span>
+              </div>
+              <div class="checklist-grid" id="passportChecks"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="risk" aria-labelledby="risk-title">
+          <div class="layout-grid">
+            <article class="surface span-4">
+              <p class="section-kicker">AI RiskScore</p>
+              <h2 id="risk-title">案件風險評分</h2>
+              <div class="risk-dial" aria-label="Risk score 31">
+                <div class="dial-ring">
+                  <strong>31</strong>
+                  <span>中低風險</span>
+                </div>
+              </div>
+            </article>
+            <article class="surface span-8">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Risk Factors</p>
+                  <h2>風險來源拆解</h2>
+                </div>
+              </div>
+              <div class="bar-list" id="riskBars"></div>
+            </article>
+            <article class="surface span-12">
+              <p class="section-kicker">AI Governance Agent</p>
+              <h2>建議處置</h2>
+              <div class="recommendation-grid">
+                <div>補齊 D3 報價版本差異表，鎖定工程範圍。</div>
+                <div>付款節點需與 Gate 通過條件綁定，避免預付款爭議。</div>
+                <div>施工變更需產生 PGP 追加紀錄，不可用 LINE 口頭確認取代。</div>
+                <div>AI 監工照片須綁定 EXIF、時間戳與工程節點。</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="glevel" aria-labelledby="glevel-title">
+          <div class="layout-grid">
+            <article class="surface span-6">
+              <p class="section-kicker">Governance Level</p>
+              <h2 id="glevel-title">G-Level 治理評級制度</h2>
+              <div class="level-ladder" id="levelLadder"></div>
+            </article>
+            <article class="surface span-6">
+              <p class="section-kicker">Governance Credit</p>
+              <h2>評級與信用資料分工</h2>
+              <div class="split-list">
+                <div>
+                  <strong>G-Level</strong>
+                  <span>公開治理評級，面向屋主、公會與合作夥伴。</span>
+                </div>
+                <div>
+                  <strong>Governance Credit</strong>
+                  <span>長期履約信用資料，面向金融、保險與企業合作。</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="association" aria-labelledby="association-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Association Governance Center</p>
+                  <h2 id="association-title">公會治理中心</h2>
+                </div>
+                <span class="status-pill">試點規劃</span>
+              </div>
+              <div class="association-grid">
+                <div class="assoc-card"><strong>理事長 Dashboard</strong><span>會員案件治理 KPI、風險熱點與推動成效</span></div>
+                <div class="assoc-card"><strong>認證制度</strong><span>iSAFE 認證會員、安心工程、優良廠商標章</span></div>
+                <div class="assoc-card"><strong>教育訓練</strong><span>治理節點、文件範本、會員導入手冊</span></div>
+                <div class="assoc-card"><strong>治理聯盟</strong><span>共同制定標準、G-Level、收益共享</span></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="architecture" aria-labelledby="architecture-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">System Architecture</p>
+                  <h2 id="architecture-title">前後端分離與 AI 混合雲架構</h2>
+                </div>
+                <span class="status-pill">SBIR V2.1</span>
+              </div>
+              <div class="tech-stack">
+                <div><strong>Next.js / React</strong><span>會員端、業主端、總部與公會儀表板</span></div>
+                <div><strong>FastAPI</strong><span>Gate、PGP、RiskScore 與治理 API</span></div>
+                <div><strong>PostgreSQL</strong><span>案件、狀態、檢核、證據與信用資料</span></div>
+                <div><strong>Redis</strong><span>任務佇列、快取、通知與非同步處理</span></div>
+                <div><strong>MinIO / S3</strong><span>圖說、照片、合約與 Evidence Vault</span></div>
+                <div><strong>AI Hybrid Cloud</strong><span>LLM、YOLOv8、ComfyUI 與私有 GPU 工作流</span></div>
+              </div>
+            </article>
+            <article class="surface span-6">
+              <p class="section-kicker">API Contract</p>
+              <h2>核心 API 示意</h2>
+              <div class="api-list">
+                <code>GET /api/v2/cases/{id}/pgp</code>
+                <code>POST /api/v2/gate/verify</code>
+                <code>POST /api/v2/evidence/upload</code>
+                <code>GET /api/v2/risk/{caseId}/score</code>
+              </div>
+            </article>
+            <article class="surface span-6">
+              <p class="section-kicker">Traceability</p>
+              <h2>不可篡改證據鏈</h2>
+              <ul class="check-list">
+                <li>每筆文件與照片保存 SHA-256 hash。</li>
+                <li>AI 監工照片保存 EXIF、GPS、timestamp 與 Gate 關聯。</li>
+                <li>狀態異動寫入 state_log，禁止覆蓋前版事實。</li>
+                <li>PGP 可於 C5 一鍵輸出案件治理履歷。</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="sbir" aria-labelledby="sbir-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">SBIR V2.1</p>
+                  <h2 id="sbir-title">九大研發引擎與驗收指標</h2>
+                </div>
+                <span class="status-pill">12 個月 MVP</span>
+              </div>
+              <div class="engine-grid">
+                <div>State Machine Engine</div>
+                <div>Gate Governance Engine</div>
+                <div>Checklist Engine</div>
+                <div>Evidence Engine</div>
+                <div>PGP Engine</div>
+                <div>RiskScore Engine</div>
+                <div>Governance Credit Engine</div>
+                <div>AI Governance Assistant</div>
+                <div>Multi-Agent Governance</div>
+              </div>
+            </article>
+            <article class="surface span-7">
+              <p class="section-kicker">KPI</p>
+              <h2>計畫執行期驗收目標</h2>
+              <div class="kpi-table">
+                <div class="kpi-row header"><span>分類</span><span>指標</span><span>目標</span></div>
+                <div class="kpi-row"><span>技術</span><span>Gate / 狀態機完備度</span><span>&gt;85%</span></div>
+                <div class="kpi-row"><span>治理</span><span>PGP 護照生成率</span><span>100%</span></div>
+                <div class="kpi-row"><span>AI</span><span>Risk Alert Recall</span><span>≥0.75</span></div>
+                <div class="kpi-row"><span>落地</span><span>AAA 認證會員</span><span>≥50 家</span></div>
+              </div>
+            </article>
+            <article class="surface span-5">
+              <p class="section-kicker">IP Strategy</p>
+              <h2>專利與營業秘密</h2>
+              <ul class="check-list">
+                <li>延伸既有專利 I670676。</li>
+                <li>申請 RiskScore 動態算分相關專利。</li>
+                <li>Evidence Engine 影像存證與查驗工作台。</li>
+                <li>StyleMatch embedding、YOLOv8 模型與 Agent prompt 作為營業秘密。</li>
+              </ul>
+            </article>
+            <article class="surface span-12">
+              <p class="section-kicker">Roadmap</p>
+              <h2>12 個月研發時程</h2>
+              <div class="roadmap-strip">
+                <div><strong>M1-M2</strong><span>需求、資料結構、API 規格</span></div>
+                <div><strong>M3-M4</strong><span>Gate、Checklist、Evidence 開發</span></div>
+                <div><strong>M5-M6</strong><span>PGP、RiskScore、治理儀表板</span></div>
+                <div><strong>M7-M8</strong><span>StyleMatch AI 與 AI 監工整合</span></div>
+                <div><strong>M9-M12</strong><span>試點導入、KPI 驗證、商業化準備</span></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="business" aria-labelledby="business-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <p class="section-kicker">Business Model</p>
+              <h2 id="business-title">從 SaaS 到治理信用的收入層</h2>
+              <div class="business-model">
+                <div><strong>認證會員年費</strong><span>安心裝修認證與案件曝光加權</span></div>
+                <div><strong>治理服務費</strong><span>Gate、Evidence 與 PGP 維護按件或訂閱收費</span></div>
+                <div><strong>AI 提案費</strong><span>StyleMatch AI 進階風格報告與預算導出</span></div>
+                <div><strong>公會白牌 SaaS</strong><span>治理中心、會員管理、授權與維護費</span></div>
+                <div><strong>教育訓練費</strong><span>AI 賦能與治理標準認證課程</span></div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
