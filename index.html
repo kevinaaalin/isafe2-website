@@ -8,35 +8,39 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar" aria-label="iSAFE 2.0 navigation">
+      <aside class="sidebar" aria-label="iSAFE 2.0 導覽選單">
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">iS</div>
           <div>
             <div class="brand-name">iSAFE 2.0</div>
-            <div class="brand-sub">Governance OS</div>
+            <div class="brand-sub">治理作業系統</div>
           </div>
         </div>
 
-        <nav class="nav-list" aria-label="Main sections">
+        <nav class="nav-list" aria-label="主要功能">
           <button class="nav-item active" data-view="overview" type="button">
             <span class="nav-icon" aria-hidden="true">⌂</span>
             <span>治理總覽</span>
           </button>
           <button class="nav-item" data-view="gate" type="button">
             <span class="nav-icon" aria-hidden="true">◆</span>
-            <span>Gate 狀態機</span>
+            <span>關卡狀態機</span>
           </button>
           <button class="nav-item" data-view="passport" type="button">
             <span class="nav-icon" aria-hidden="true">▣</span>
-            <span>PGP 案件護照</span>
+            <span>案件治理護照</span>
+          </button>
+          <button class="nav-item" data-view="checklist" type="button">
+            <span class="nav-icon" aria-hidden="true">▦</span>
+            <span>24表單引擎</span>
           </button>
           <button class="nav-item" data-view="risk" type="button">
             <span class="nav-icon" aria-hidden="true">◎</span>
-            <span>RiskScore</span>
+            <span>AI 風險評分</span>
           </button>
           <button class="nav-item" data-view="glevel" type="button">
             <span class="nav-icon" aria-hidden="true">★</span>
-            <span>G-Level 評級</span>
+            <span>治理評級</span>
           </button>
           <button class="nav-item" data-view="association" type="button">
             <span class="nav-icon" aria-hidden="true">◫</span>
@@ -48,7 +52,7 @@
           </button>
           <button class="nav-item" data-view="sbir" type="button">
             <span class="nav-icon" aria-hidden="true">▤</span>
-            <span>SBIR V2.1</span>
+            <span>研發計畫</span>
           </button>
           <button class="nav-item" data-view="business" type="button">
             <span class="nav-icon" aria-hidden="true">₿</span>
@@ -227,6 +231,70 @@
                 <span class="status-pill">18 / 24</span>
               </div>
               <div class="checklist-grid" id="passportChecks"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="checklist" aria-labelledby="checklist-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Checklist24 x 2025 TWCID Forms</p>
+                  <h2 id="checklist-title">24 張檢核手冊 v8 表單化升級</h2>
+                </div>
+                <span class="status-pill">20 張表單補強 24 張手冊</span>
+              </div>
+              <div class="checklist-summary">
+                <div>
+                  <strong>2025 PDF 表單</strong>
+                  <span>31 頁、20 張現場可填寫檢核表，含勾選、異常註記、補充說明、規格與設備欄位。</span>
+                </div>
+                <div>
+                  <strong>24 張檢核手冊</strong>
+                  <span>正式手冊架構，涵蓋環境控制、監視保全、防水、完工交付等補充項目。</span>
+                </div>
+                <div>
+                  <strong>v8 升級方向</strong>
+                  <span>保留手冊說明，新增現場表單欄位，轉成可回填 iSAFE Gate、PGP、RiskScore 的資料結構。</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="surface span-7">
+              <p class="section-kicker">Field Model</p>
+              <h2>每張手冊新增共同欄位</h2>
+              <div class="field-matrix">
+                <div><strong>檢核狀態</strong><span>未檢核、符合、異常、不適用、待補件</span></div>
+                <div><strong>證據上傳</strong><span>照片、PDF、報價單、材質表、設備規格、驗收紀錄</span></div>
+                <div><strong>異常管理</strong><span>異常註記、補充說明、修正期限、責任人、複查結果</span></div>
+                <div><strong>Gate 權限</strong><span>必填、條件必填、可選填、未完成禁止進入下一階段</span></div>
+                <div><strong>RiskScore</strong><span>防水、漏水、蟲害、公共防護、社區限制、追加工程等風險標籤</span></div>
+                <div><strong>PGP 履歷</strong><span>案件編號、階段、日期、簽核者、版本、不可回溯紀錄</span></div>
+              </div>
+            </article>
+
+            <article class="surface span-5">
+              <p class="section-kicker">Priority</p>
+              <h2>優先導入項目</h2>
+              <ol class="priority-list">
+                <li><strong>現場勘查</strong><span>管委會、保證金、公共區防護、屋況與環境風險。</span></li>
+                <li><strong>需求溝通</strong><span>家庭成員、生活習慣、安全需求、預算建議值。</span></li>
+                <li><strong>材質確認</strong><span>品牌、型號、規格、數量、位置與替代品確認。</span></li>
+                <li><strong>工程前置</strong><span>社區報備、施工公告、圖面與材質表上傳狀態。</span></li>
+                <li><strong>完工交付</strong><span>缺失紀錄、操作示範、保固書、交屋款簽認。</span></li>
+              </ol>
+            </article>
+
+            <article class="surface span-12">
+              <p class="section-kicker">Manual Upgrade Map</p>
+              <h2>從閱讀型手冊升級為治理型表單</h2>
+              <div class="upgrade-map">
+                <div><strong>手冊說明</strong><span>目的、適用時機、應注意事項、容易出錯、預防措施。</span></div>
+                <div><strong>現場檢核</strong><span>2025 表單的勾選欄、異常註記、補充說明、設備規格與施工紀錄。</span></div>
+                <div><strong>系統治理</strong><span>Gate 驗證、PGP 證據鏈、RiskScore 風險提示、後台稽核履歷。</span></div>
+                <div><strong>產業標準</strong><span>24 張不縮回 20 張；20 張 PDF 作為共同欄位來源，4 張補充項目依同規格擴寫。</span></div>
+              </div>
             </article>
           </div>
         </section>

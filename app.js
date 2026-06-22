@@ -2,6 +2,7 @@ const views = {
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   passport: "案件治理護照與證據鏈",
+  checklist: "24 張檢核手冊表單化引擎",
   risk: "AI 風險評分與預警",
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",

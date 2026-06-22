@@ -646,7 +646,10 @@ p {
 .association-grid,
 .tech-stack,
 .engine-grid,
-.roadmap-strip {
+.roadmap-strip,
+.checklist-summary,
+.field-matrix,
+.upgrade-map {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
@@ -657,7 +660,10 @@ p {
 .assoc-card,
 .tech-stack div,
 .engine-grid div,
-.roadmap-strip div {
+.roadmap-strip div,
+.checklist-summary div,
+.field-matrix div,
+.upgrade-map div {
   border: 1px solid var(--line);
   background: #fff;
   padding: 15px;
@@ -668,7 +674,10 @@ p {
 .business-model strong,
 .assoc-card strong,
 .tech-stack strong,
-.roadmap-strip strong {
+.roadmap-strip strong,
+.checklist-summary strong,
+.field-matrix strong,
+.upgrade-map strong {
   display: block;
   margin-bottom: 10px;
   font-size: 18px;
@@ -677,9 +686,78 @@ p {
 .business-model span,
 .assoc-card span,
 .tech-stack span,
-.roadmap-strip span {
+.roadmap-strip span,
+.checklist-summary span,
+.field-matrix span,
+.upgrade-map span {
   color: var(--muted);
   line-height: 1.55;
+}
+
+.checklist-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.checklist-summary div {
+  background: var(--teal-soft);
+}
+
+.field-matrix {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-matrix div {
+  min-height: 104px;
+}
+
+.upgrade-map div {
+  background: #fff;
+  border-top: 4px solid var(--teal);
+}
+
+.priority-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  counter-reset: priority;
+}
+
+.priority-list li {
+  counter-increment: priority;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 12px;
+}
+
+.priority-list li::before {
+  content: counter(priority);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-weight: 900;
+}
+
+.priority-list strong,
+.priority-list span {
+  grid-column: 2;
+}
+
+.priority-list strong {
+  margin-bottom: 4px;
+}
+
+.priority-list span {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .engine-grid {
@@ -823,7 +901,10 @@ p {
   .association-grid,
   .tech-stack,
   .engine-grid,
-  .roadmap-strip {
+  .roadmap-strip,
+  .checklist-summary,
+  .field-matrix,
+  .upgrade-map {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -861,6 +942,9 @@ p {
   .tech-stack,
   .engine-grid,
   .roadmap-strip,
+  .checklist-summary,
+  .field-matrix,
+  .upgrade-map,
   .checklist-grid,
   .passport-meta,
   .nav-list {
