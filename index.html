@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>iSAFE 2.0 | 產業數位治理工作台</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260721-r5" />
   </head>
   <body>
     <div class="app-shell">
@@ -25,6 +25,14 @@
           <button class="nav-item" data-view="gate" type="button">
             <span class="nav-icon" aria-hidden="true">◆</span>
             <span>關卡狀態機</span>
+          </button>
+          <button class="nav-item" data-view="projects" type="button">
+            <span class="nav-icon" aria-hidden="true">▥</span>
+            <span>監管專案</span>
+          </button>
+          <button class="nav-item" data-view="r5" type="button">
+            <span class="nav-icon" aria-hidden="true">R5</span>
+            <span>R5 契約基線</span>
           </button>
           <button class="nav-item" data-view="passport" type="button">
             <span class="nav-icon" aria-hidden="true">▣</span>
@@ -197,6 +205,67 @@
                 </div>
               </div>
               <div class="audit-table" id="auditRows"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="projects" aria-labelledby="projects-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Project Workspace</p>
+                  <h2 id="projects-title">iSAFE 監管專案</h2>
+                </div>
+                <span class="status-pill" id="projectCaseLabel">IS-2026-0001</span>
+              </div>
+              <div class="project-toolbar">
+                <div class="case-search">
+                  <label for="caseSelect">案件</label>
+                  <select id="caseSelect"></select>
+                </div>
+                <div class="role-switcher" id="roleSwitcher" aria-label="角色切換"></div>
+              </div>
+            </article>
+
+            <article class="surface span-7">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Case Detail</p>
+                  <h2 id="projectTitle">監管專案</h2>
+                </div>
+                <span class="status-pill good" id="projectStatus">Active</span>
+              </div>
+              <div class="project-detail-grid" id="projectDetail"></div>
+            </article>
+
+            <article class="surface span-5">
+              <p class="section-kicker">Role View</p>
+              <h2 id="roleTitle">總部視圖</h2>
+              <div class="permission-panel" id="permissionPanel"></div>
+            </article>
+
+            <article class="surface span-6">
+              <p class="section-kicker">Gate</p>
+              <h2>目前監管節點</h2>
+              <div class="gate-machine compact" id="projectGateMachine"></div>
+            </article>
+
+            <article class="surface span-6">
+              <p class="section-kicker">Evidence</p>
+              <h2>證據與待辦</h2>
+              <div class="rule-stack" id="projectEvidence"></div>
+            </article>
+
+            <article class="surface span-12 r5-contract-card">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">TIGI R5 Alignment</p>
+                  <h2>R5 契約基線與治理邊界</h2>
+                </div>
+                <span class="status-pill good">20260721_R5</span>
+              </div>
+              <div class="r5-inline-grid" id="projectR5Summary"></div>
             </article>
           </div>
         </section>
@@ -476,6 +545,55 @@
           </div>
         </section>
 
+        <section class="view" id="r5" aria-labelledby="r5-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">TIGI Official Edition</p>
+                  <h2 id="r5-title">iSAFE 2.0 R5 契約基線</h2>
+                </div>
+                <span class="status-pill good">Accepted ADR</span>
+              </div>
+              <div class="r5-hero">
+                <div>
+                  <span class="r5-label">Document Baseline</span>
+                  <strong>TIGI_Four_Document_Masters_Optimized_20260721_R5</strong>
+                  <p>本地網站以 R5 作為最高解釋依據，將 72 個 canonical IDs、正式事件、API 版本與付款治理分層納入畫面與檢查點。</p>
+                </div>
+                <div class="r5-contract-id">
+                  <span>Contract</span>
+                  <strong>canonical-contract-r5.json</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="surface span-6">
+              <p class="section-kicker">Formal Events</p>
+              <h2>事件名稱統一</h2>
+              <div class="event-grid" id="r5Events"></div>
+            </article>
+
+            <article class="surface span-6">
+              <p class="section-kicker">Payment Governance</p>
+              <h2>付款流程分層</h2>
+              <div class="payment-flow" id="r5PaymentFlow"></div>
+            </article>
+
+            <article class="surface span-7">
+              <p class="section-kicker">Canonical IDs</p>
+              <h2>R5 欄位契約</h2>
+              <div class="canonical-list" id="r5CanonicalIds"></div>
+            </article>
+
+            <article class="surface span-5">
+              <p class="section-kicker">AI Boundary</p>
+              <h2>AI Agent 權限邊界</h2>
+              <div class="ai-boundary" id="r5AiBoundary"></div>
+            </article>
+          </div>
+        </section>
+
         <section class="view" id="business" aria-labelledby="business-title">
           <div class="layout-grid">
             <article class="surface span-12">
@@ -493,6 +611,6 @@
         </section>
       </main>
     </div>
-    <script src="app.js"></script>
+    <script src="app.js?v=20260721-r5"></script>
   </body>
 </html>

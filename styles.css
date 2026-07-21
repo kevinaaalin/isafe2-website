@@ -474,6 +474,239 @@ p {
   line-height: 1.5;
 }
 
+.project-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.case-search {
+  display: grid;
+  gap: 6px;
+}
+
+.case-search label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.case-search select {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 12px;
+}
+
+.role-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.role-button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.role-button.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.project-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.project-detail-grid div {
+  border: 1px solid var(--line);
+  background: #fff;
+  min-height: 74px;
+  padding: 12px;
+}
+
+.project-detail-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.project-detail-grid strong {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.r5-contract-card {
+  border-left: 4px solid var(--teal);
+}
+
+.r5-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.r5-hero > div,
+.r5-contract-id,
+.event-card,
+.payment-flow div,
+.ai-boundary div,
+.r5-inline-grid div {
+  border: 1px solid var(--line);
+  background: #fffaf2;
+  padding: 16px;
+}
+
+.r5-hero strong,
+.r5-contract-id strong,
+.event-card strong,
+.payment-flow strong,
+.ai-boundary strong,
+.r5-inline-grid strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.r5-label,
+.r5-contract-id span,
+.r5-inline-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.r5-hero p,
+.event-card span,
+.ai-boundary span {
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 10px 0 0;
+}
+
+.r5-contract-id {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--teal-soft);
+}
+
+.event-grid,
+.payment-flow,
+.canonical-list,
+.ai-boundary,
+.r5-inline-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.event-grid,
+.r5-inline-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.payment-flow {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.payment-flow div {
+  min-height: 112px;
+}
+
+.payment-flow span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 14px;
+  background: var(--sidebar);
+  color: #fff;
+  font-weight: 800;
+}
+
+.canonical-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.canonical-list code {
+  display: block;
+  min-height: 42px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #f6f8f8;
+  color: var(--teal);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.canonical-summary {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--gold-soft);
+}
+
+.canonical-summary strong {
+  font-size: 34px;
+  color: var(--gold);
+}
+
+.canonical-summary span {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.permission-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.permission-scope {
+  border: 1px solid var(--line);
+  background: var(--teal-soft);
+  font-weight: 800;
+  line-height: 1.6;
+  padding: 14px;
+}
+
+.permission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permission-actions span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 4px 9px;
+}
+
+.gate-machine.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .audit-table {
   display: grid;
   border: 1px solid var(--line);
@@ -896,6 +1129,8 @@ p {
 
   .status-strip,
   .architecture-flow,
+  .r5-hero,
+  .project-detail-grid,
   .recommendation-grid,
   .business-model,
   .association-grid,
@@ -905,6 +1140,11 @@ p {
   .checklist-summary,
   .field-matrix,
   .upgrade-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .payment-flow,
+  .canonical-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -936,6 +1176,14 @@ p {
 
   .status-strip,
   .architecture-flow,
+  .project-toolbar,
+  .r5-hero,
+  .event-grid,
+  .payment-flow,
+  .canonical-list,
+  .r5-inline-grid,
+  .project-detail-grid,
+  .gate-machine.compact,
   .recommendation-grid,
   .business-model,
   .association-grid,

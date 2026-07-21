@@ -1,6 +1,8 @@
 const views = {
+  r5: "iSAFE 2.0 R5 契約基線與正式事件",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
+  projects: "iSAFE 監管專案工作台",
   passport: "案件治理護照與證據鏈",
   checklist: "24 張檢核手冊表單化引擎",
   risk: "AI 風險評分與預警",
@@ -10,6 +12,48 @@ const views = {
   sbir: "SBIR V2.1 研發計畫",
   business: "商業模式與投資人版本",
 };
+
+const r5Contract = {
+  version: "20260721_R5",
+  acceptedAdr: "Accepted ADR",
+  baseline: "TIGI_Four_Document_Masters_Optimized_20260721_R5",
+  contractFile: "canonical-contract-r5.json",
+  canonicalIdCount: 72,
+  apiBase: "/api/v1",
+};
+
+const r5Events = [
+  {
+    name: "GateEvaluated",
+    purpose: "Gate 判定完成後產生的正式治理事件，承載 gate、evidence、risk 與 human review 狀態。",
+  },
+  {
+    name: "PaymentEligibilityChanged",
+    purpose: "付款資格變更事件，只表達 eligibility，不混同核准或執行付款。",
+  },
+];
+
+const r5PaymentFlow = [
+  "Gate",
+  "Payment Eligibility",
+  "Payment Approval",
+  "Payment Execution",
+];
+
+const r5CanonicalIds = [
+  "tenant_id",
+  "org_id",
+  "subject_id",
+  "project_id",
+  "case_id",
+  "gate_evaluation_id",
+  "payment_eligibility_id",
+  "payment_approval_id",
+  "payment_execution_id",
+  "evidence_id",
+  "trace_id",
+  "adr_id",
+];
 
 const gates = [
   { id: "D1", name: "需求登錄", text: "建立案件、屋況、預算與初始需求。" },
@@ -21,6 +65,13 @@ const gates = [
   { id: "C4", name: "保固維護", text: "建立保固、維修、追蹤與售後紀錄。" },
   { id: "C5", name: "治理封存", text: "PGP、RiskScore、G-Level 完成歸檔。" },
 ];
+
+gates.splice(
+  3,
+  0,
+  { id: "D4", name: "提案與風險審查", text: "確認提案、預算、風險與必要證據。" },
+  { id: "D5", name: "契約與開工條件", text: "完成契約、角色與開工前治理條件。" },
+);
 
 const gateRules = [
   { label: "狀態不可跳關", text: "每個 Gate 都需要完成必要文件與檢核，才能進入下一階段。" },
@@ -67,7 +118,78 @@ const levels = [
   ["G5", "產業級治理資料標準", "成熟"],
 ];
 
+const roles = [
+  {
+    id: "headquarter",
+    label: "總部",
+    title: "總部視圖",
+    scope: "全區案件、代理商績效、跨區風險與完整 PGP",
+    actions: ["指派代理商", "覆核 Gate", "查看全部 Evidence", "匯出 PGP"],
+  },
+  {
+    id: "agency",
+    label: "代理商",
+    title: "代理商視圖",
+    scope: "轄下案件、設計師進度、待補文件與 RiskScore",
+    actions: ["追蹤轄下案件", "催補資料", "初審 Gate", "查看代理商 KPI"],
+  },
+  {
+    id: "association",
+    label: "公會",
+    title: "公會視圖",
+    scope: "爭議、評鑑、調處、PGP 與稽核 Evidence",
+    actions: ["查看爭議紀錄", "建立調處意見", "審閱 PGP", "標記評鑑結果"],
+  },
+  {
+    id: "designer",
+    label: "設計師",
+    title: "設計師視圖",
+    scope: "本人案件、交付物、文件上傳與 Gate 待辦",
+    actions: ["上傳文件", "回覆待辦", "查看 Gate 狀態", "提交變更說明"],
+  },
+  {
+    id: "owner",
+    label: "業主",
+    title: "業主視圖",
+    scope: "本人專案、工程進度、確認事項與 PGP 摘要",
+    actions: ["確認需求", "查看進度", "下載 PGP 摘要", "提出問題"],
+  },
+];
+
+let projectCases = [
+  {
+    id: "IS-2026-0001",
+    title: "SM-2026-0002 iSAFE 監管專案",
+    sourceCase: "SM-2026-0002",
+    source: "StyleMatchAI",
+    stage: "D1_intake",
+    gate: "D1_pending",
+    status: "Active",
+    risk: 88,
+    agency: "台北一區代理商",
+    designer: "A-Designer Studio",
+    owner: "owner@example.com",
+    evidence: ["case_master", "timeline", "audit_log", "project_photos"],
+  },
+  {
+    id: "IS-2026-0002",
+    title: "SM-2026-0003 iSAFE 監管專案",
+    sourceCase: "SM-2026-0003",
+    source: "StyleMatchAI",
+    stage: "D3_design_match",
+    gate: "D3_review",
+    status: "Active",
+    risk: 42,
+    agency: "新北代理商",
+    designer: "North Interior Lab",
+    owner: "client@example.com",
+    evidence: ["case_master", "proposal", "site_photos", "audit_log"],
+  },
+];
+
 let currentGate = 2;
+let activeRole = "headquarter";
+let activeCaseId = "IS-2026-0001";
 
 function qs(selector, root = document) {
   return root.querySelector(selector);
@@ -82,6 +204,53 @@ function setText(selector, text) {
   if (target) target.textContent = text;
 }
 
+function getActiveCase() {
+  return projectCases.find((item) => item.id === activeCaseId) || projectCases[0];
+}
+
+async function loadProjectCases() {
+  try {
+    const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || "http://127.0.0.1:4180";
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/cases`, {
+      headers: {
+        "X-Tenant-Id": "tenant_local_tigi",
+        "X-Organization-Id": "org_local_headquarter",
+        "X-Purpose": "isafe_governance_review",
+        "X-Consent-Ref": "consent_local_trial",
+      },
+    });
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const payload = await response.json();
+    if (!Array.isArray(payload.cases) || payload.cases.length === 0) return;
+    projectCases = payload.cases.map((item) => ({
+      id: item.isafe_case_id,
+      title: item.title,
+      sourceCase: item.source_case_code,
+      source: item.source || "StyleMatchAI",
+      stage: item.current_stage,
+      gate: item.gate_status,
+      status: item.status === "active" ? "Active" : item.status,
+      risk: item.risk_score,
+      agency: item.agency || "尚未指派",
+      designer: item.designer || "尚未指派",
+      owner: item.owner || "local-admin",
+      evidence: Array.isArray(item.evidence) && item.evidence.length
+        ? item.evidence.map((entry) => entry.evidence_type)
+        : ["case_master", "timeline", "audit_log"],
+    }));
+    const requestedCase = new URLSearchParams(window.location.search).get("case");
+    activeCaseId = projectCases.some((item) => item.id === requestedCase)
+      ? requestedCase
+      : projectCases[0].id;
+  } catch (error) {
+    console.warn("iSAFE Local API unavailable; using bundled demonstration cases.", error);
+  }
+}
+
+function getActiveRole() {
+  return roles.find((item) => item.id === activeRole) || roles[0];
+}
+
 function setView(viewId) {
   const nextView = views[viewId] ? viewId : "overview";
 
@@ -94,6 +263,8 @@ function setView(viewId) {
   });
 
   setText("#view-title", views[nextView]);
+  if (nextView === "projects") renderProjectWorkspace();
+  if (nextView === "r5") renderR5Baseline();
 }
 
 function renderGateMachine() {
@@ -186,13 +357,188 @@ function renderLevels() {
     .join("");
 }
 
+function renderProjectGateMachine() {
+  const target = qs("#projectGateMachine");
+  if (!target) return;
+
+  target.innerHTML = gates
+    .map((gate, index) => {
+      const state = index < currentGate ? "done" : index === currentGate ? "current" : "locked";
+      return `
+        <div class="gate-node ${state}">
+          <strong>${gate.id} ${gate.name}</strong>
+          <small>${gate.text}</small>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderRoleSwitcher() {
+  const target = qs("#roleSwitcher");
+  if (!target) return;
+
+  target.innerHTML = roles
+    .map(
+      (role) => `
+        <button class="role-button ${role.id === activeRole ? "active" : ""}" data-role="${role.id}" type="button">
+          ${role.label}
+        </button>
+      `,
+    )
+    .join("");
+
+  qsa(".role-button", target).forEach((button) => {
+    button.addEventListener("click", () => {
+      activeRole = button.dataset.role;
+      renderProjectWorkspace();
+    });
+  });
+}
+
+function renderCaseSelect() {
+  const select = qs("#caseSelect");
+  if (!select) return;
+
+  select.innerHTML = projectCases
+    .map((item) => `<option value="${item.id}" ${item.id === activeCaseId ? "selected" : ""}>${item.id}</option>`)
+    .join("");
+
+  select.onchange = (event) => {
+    activeCaseId = event.target.value;
+    renderProjectWorkspace();
+  };
+}
+
+function renderR5Baseline() {
+  const events = qs("#r5Events");
+  if (events) {
+    events.innerHTML = r5Events
+      .map(
+        (event) => `
+          <div class="event-card">
+            <strong>${event.name}</strong>
+            <span>${event.purpose}</span>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  const paymentFlow = qs("#r5PaymentFlow");
+  if (paymentFlow) {
+    paymentFlow.innerHTML = r5PaymentFlow
+      .map((step, index) => `<div><span>${index + 1}</span><strong>${step}</strong></div>`)
+      .join("");
+  }
+
+  const canonicalIds = qs("#r5CanonicalIds");
+  if (canonicalIds) {
+    canonicalIds.innerHTML = [
+      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>canonical IDs adopted from ${r5Contract.version}</span></div>`,
+      ...r5CanonicalIds.map((id) => `<code>${id}</code>`),
+    ].join("");
+  }
+
+  const boundary = qs("#r5AiBoundary");
+  if (boundary) {
+    boundary.innerHTML = `
+      <div><strong>${r5Contract.acceptedAdr}</strong><span>R5 Accepted ADR is the highest interpretation basis.</span></div>
+      <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
+      <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
+    `;
+  }
+}
+
+function renderProjectR5Summary() {
+  const target = qs("#projectR5Summary");
+  if (!target) return;
+
+  target.innerHTML = [
+    ["R5 Baseline", r5Contract.version],
+    ["Accepted ADR", r5Contract.acceptedAdr],
+    ["Canonical IDs", `${r5Contract.canonicalIdCount} IDs`],
+    ["API Base", r5Contract.apiBase],
+    ["Gate Event", "GateEvaluated"],
+    ["Payment Event", "PaymentEligibilityChanged"],
+    ["Payment Split", r5PaymentFlow.join(" -> ")],
+    ["AI Boundary", "recommend only; human review required"],
+  ]
+    .map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`)
+    .join("");
+}
+
+function renderProjectWorkspace() {
+  const project = getActiveCase();
+  if (!project) return;
+  const role = getActiveRole();
+  const projectGateId = String(project.stage || "D1").split("_")[0];
+  const projectGateIndex = gates.findIndex((gate) => gate.id === projectGateId);
+  if (projectGateIndex >= 0) currentGate = projectGateIndex;
+  setText("#projectCaseLabel", project.id);
+  setText("#projectTitle", project.title);
+  setText("#projectStatus", project.status);
+  setText("#roleTitle", role.title);
+
+  renderCaseSelect();
+  renderRoleSwitcher();
+  renderProjectGateMachine();
+  renderProjectR5Summary();
+
+  const detail = qs("#projectDetail");
+  if (detail) {
+    detail.innerHTML = [
+      ["iSAFE ID", project.id],
+      ["來源案件", project.sourceCase],
+      ["來源系統", project.source],
+      ["目前 Stage", project.stage],
+      ["Gate 狀態", project.gate],
+      ["RiskScore", project.risk],
+      ["代理商", project.agency],
+      ["設計師", project.designer],
+      ["業主", project.owner],
+    ]
+      .map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`)
+      .join("");
+  }
+
+  const panel = qs("#permissionPanel");
+  if (panel) {
+    panel.innerHTML = `
+      <div class="permission-scope">${role.scope}</div>
+      <div class="permission-actions">
+        ${role.actions.map((action) => `<span>${action}</span>`).join("")}
+      </div>
+    `;
+  }
+
+  const evidence = qs("#projectEvidence");
+  if (evidence) {
+    evidence.innerHTML = project.evidence
+      .map((item) => `<div class="rule-item"><strong>${item}</strong><span>已納入此角色可見的監管摘要。</span></div>`)
+      .join("");
+  }
+}
+
 function advanceCase() {
   currentGate = Math.min(currentGate + 1, gates.length - 1);
   renderGateMachine();
+  renderProjectWorkspace();
   setView("gate");
 }
 
-function init() {
+function initFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get("view");
+  const caseId = params.get("case");
+  const role = params.get("role");
+
+  if (projectCases.some((item) => item.id === caseId)) activeCaseId = caseId;
+  if (roles.some((item) => item.id === role)) activeRole = role;
+  setView(views[view] ? view : "overview");
+}
+
+async function init() {
   qsa(".nav-item").forEach((button) => {
     button.addEventListener("click", () => setView(button.dataset.view));
   });
@@ -209,6 +555,10 @@ function init() {
   renderPassportChecks();
   renderRiskBars();
   renderLevels();
+  renderR5Baseline();
+  await loadProjectCases();
+  renderProjectWorkspace();
+  initFromUrl();
 }
 
 document.addEventListener("DOMContentLoaded", init);
