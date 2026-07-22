@@ -678,6 +678,15 @@ p {
   gap: 14px;
 }
 
+.permission-notice {
+  border-left: 3px solid var(--coral);
+  padding: 10px 12px;
+  background: rgba(220, 91, 75, 0.08);
+  color: var(--ink);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
 .permission-scope {
   border: 1px solid var(--line);
   background: var(--teal-soft);

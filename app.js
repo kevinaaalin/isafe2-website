@@ -187,6 +187,7 @@ let projectCases = [
   },
 ];
 
+let outboxEvents = [];
 let currentGate = 2;
 let activeRole = "headquarter";
 let activeCaseId = "IS-2026-0001";
@@ -234,10 +235,33 @@ async function loadProjectCases() {
       agency: item.agency || "尚未指派",
       designer: item.designer || "尚未指派",
       owner: item.owner || "local-admin",
+      schemaVersion: item.schema_version || "20260721_R5",
+      tenantId: item.tenant_id || "-",
+      organizationId: item.organization_id || "-",
+      journeyId: item.journey_id || "-",
+      stylematchProjectId: item.stylematch_project_id || item.source_project_id || "-",
+      projectId: item.project_id || "-",
+      handoverId: item.handover_id || "-",
+      correlationId: item.correlation_id || item.trace_id || "-",
+      traceId: item.trace_id || "-",
+      version: item.version || 1,
+      paymentEligibilities: Array.isArray(item.payment_eligibilities) ? item.payment_eligibilities : [],
       evidence: Array.isArray(item.evidence) && item.evidence.length
         ? item.evidence.map((entry) => entry.evidence_type)
         : ["case_master", "timeline", "audit_log"],
     }));
+    const outboxResponse = await fetch(`${apiOrigin}/api/v1/outbox-events`, {
+      headers: {
+        "X-Tenant-Id": "tenant_local_tigi",
+        "X-Organization-Id": "org_local_headquarter",
+        "X-Purpose": "isafe_governance_review",
+        "X-Consent-Ref": "consent_local_trial",
+      },
+    });
+    if (outboxResponse.ok) {
+      const outboxPayload = await outboxResponse.json();
+      outboxEvents = Array.isArray(outboxPayload.events) ? outboxPayload.events : [];
+    }
     const requestedCase = new URLSearchParams(window.location.search).get("case");
     activeCaseId = projectCases.some((item) => item.id === requestedCase)
       ? requestedCase
@@ -450,18 +474,26 @@ function renderR5Baseline() {
   }
 }
 
-function renderProjectR5Summary() {
+function renderProjectR5Summary(project) {
   const target = qs("#projectR5Summary");
   if (!target) return;
 
+  const caseEvents = outboxEvents
+    .filter((event) => event.correlation_id === project.correlationId)
+    .map((event) => event.event_type);
+  const paymentStatus = project.paymentEligibilities.length
+    ? project.paymentEligibilities.map((item) => `${item.gate_stage}:${item.status}`).join(", ")
+    : "not_eligible";
+
   target.innerHTML = [
-    ["R5 Baseline", r5Contract.version],
+    ["R5 Baseline", project.schemaVersion || r5Contract.version],
     ["Accepted ADR", r5Contract.acceptedAdr],
-    ["Canonical IDs", `${r5Contract.canonicalIdCount} IDs`],
+    ["Case Version", project.version],
     ["API Base", r5Contract.apiBase],
-    ["Gate Event", "GateEvaluated"],
-    ["Payment Event", "PaymentEligibilityChanged"],
-    ["Payment Split", r5PaymentFlow.join(" -> ")],
+    ["Observed Events", caseEvents.length ? caseEvents.join(" -> ") : "Awaiting outbox events"],
+    ["Payment Eligibility", paymentStatus],
+    ["Payment Approval", "not approved"],
+    ["Payment Execution", "not executed"],
     ["AI Boundary", "recommend only; human review required"],
   ]
     .map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`)
@@ -483,12 +515,19 @@ function renderProjectWorkspace() {
   renderCaseSelect();
   renderRoleSwitcher();
   renderProjectGateMachine();
-  renderProjectR5Summary();
+  renderProjectR5Summary(project);
 
   const detail = qs("#projectDetail");
   if (detail) {
     detail.innerHTML = [
       ["iSAFE ID", project.id],
+      ["tenant_id", project.tenantId],
+      ["organization_id", project.organizationId],
+      ["journey_id", project.journeyId],
+      ["stylematch_project_id", project.stylematchProjectId],
+      ["project_id", project.projectId],
+      ["handover_id", project.handoverId],
+      ["correlation_id", project.correlationId],
       ["來源案件", project.sourceCase],
       ["來源系統", project.source],
       ["目前 Stage", project.stage],
@@ -505,6 +544,7 @@ function renderProjectWorkspace() {
   const panel = qs("#permissionPanel");
   if (panel) {
     panel.innerHTML = `
+      <div class="permission-notice">本地角色預覽。正式讀寫權限由 API 的 tenant context 與授權規則判定。</div>
       <div class="permission-scope">${role.scope}</div>
       <div class="permission-actions">
         ${role.actions.map((action) => `<span>${action}</span>`).join("")}
