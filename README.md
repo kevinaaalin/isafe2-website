@@ -1,13 +1,16 @@
-# iSAFE 2.0 R5 Website Prototype
+# iSAFE 2.0 R5.2 Website Prototype
 
 This is a static website prototype for iSAFE 2.0, focused on renovation governance, state-machine workflows, evidence management, SBIR planning, and investor-facing positioning.
 
-Current local baseline: `TIGI_Four_Document_Masters_Optimized_20260721_R5`.
+Current local baseline: `20260722_R5_2` iSAFE State Machine Contract.
 
-## R5 Alignment
+## R5.2 Alignment
 
 - Uses `Accepted ADR` as the highest interpretation basis.
-- Adopts the R5 `canonical-contract-r5.json` contract and the 72 canonical IDs requirement.
+- Loads the ten-stage registry from `GET /api/v1/isafe/state-machine` and uses the 13 cross-product canonical IDs.
+- Keeps intake and handover before D1, and keeps closure after C5.
+- Requires stage evidence before `Passed`; authorized waivers require a reason and future expiry.
+- Evaluates contractual payment milestones through a separate endpoint instead of every Gate pass.
 - Keeps implementation-facing API references under `/api/v1`.
 - Normalizes formal event names to `GateEvaluated` and `PaymentEligibilityChanged`.
 - Separates `Gate`, `Payment Eligibility`, `Payment Approval`, and `Payment Execution`.

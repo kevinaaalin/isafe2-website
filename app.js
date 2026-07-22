@@ -1,5 +1,5 @@
 const views = {
-  r5: "iSAFE 2.0 R5 契約基線與正式事件",
+  r5: "iSAFE 2.0 R5.2 狀態機契約與正式事件",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   projects: "iSAFE 監管專案工作台",
@@ -14,13 +14,15 @@ const views = {
 };
 
 const r5Contract = {
-  version: "20260721_R5",
-  acceptedAdr: "Accepted ADR",
-  baseline: "TIGI_Four_Document_Masters_Optimized_20260721_R5",
-  contractFile: "canonical-contract-r5.json",
-  canonicalIdCount: 72,
+  version: "20260722_R5_2",
+  acceptedAdr: "R5.2 State Machine ADR",
+  baseline: "TIGI R5.2 Corrected Release Candidate",
+  contractFile: "isafe-state-machine-r5.2.json",
+  canonicalIdCount: 13,
   apiBase: "/api/v1",
 };
+
+const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || "http://127.0.0.1:4180";
 
 const r5Events = [
   {
@@ -35,6 +37,7 @@ const r5Events = [
 
 const r5PaymentFlow = [
   "Gate",
+  "Contract Milestone Review",
   "Payment Eligibility",
   "Payment Approval",
   "Payment Execution",
@@ -42,36 +45,32 @@ const r5PaymentFlow = [
 
 const r5CanonicalIds = [
   "tenant_id",
-  "org_id",
-  "subject_id",
+  "organization_id",
+  "user_id",
+  "journey_id",
+  "stylematch_project_id",
+  "match_case_id",
   "project_id",
-  "case_id",
-  "gate_evaluation_id",
-  "payment_eligibility_id",
-  "payment_approval_id",
-  "payment_execution_id",
-  "evidence_id",
+  "isafe_case_id",
+  "deos_project_id",
+  "handover_id",
+  "ai_task_id",
   "trace_id",
-  "adr_id",
+  "correlation_id",
 ];
 
-const gates = [
-  { id: "D1", name: "需求登錄", text: "建立案件、屋況、預算與初始需求。" },
-  { id: "D2", name: "現勘評估", text: "完成現場資料、照片、量測與限制條件。" },
-  { id: "D3", name: "報價確認", text: "確認報價、工項、材料與變更風險。" },
-  { id: "C1", name: "合約簽署", text: "鎖定契約版本、付款節點與責任歸屬。" },
-  { id: "C2", name: "施工治理", text: "追蹤進度、工班、品質與異常事件。" },
-  { id: "C3", name: "驗收管理", text: "彙整驗收紀錄、缺失改善與交付文件。" },
-  { id: "C4", name: "保固維護", text: "建立保固、維修、追蹤與售後紀錄。" },
-  { id: "C5", name: "治理封存", text: "PGP、RiskScore、G-Level 完成歸檔。" },
+let gates = [
+  { id: "D1", key: "D1_design_preparation", name: "前置作業", text: "確認設計需求、費用、付款方式與設計契約。" },
+  { id: "D2", key: "D2_floor_plan_design", name: "平面設計規劃", text: "完成丈量、平面配置、動線與家具配置確認。" },
+  { id: "D3", key: "D3_basic_design_finalization", name: "基本設計規劃定案", text: "完成色彩、天花、水電、燈光、建材與預算定案。" },
+  { id: "D4", key: "D4_elevation_design_finalization", name: "立面設計定案", text: "完成各空間立面、材質與設計成果確認。" },
+  { id: "D5", key: "D5_construction_detail_agreements", name: "施工大樣及其他約定事項", text: "完成施工大樣、材質表、標單與完整施工圖說。" },
+  { id: "C1", key: "C1_construction_preparation", name: "前置作業", text: "確認工程契約、圖說、材料、費用與付款檢核。" },
+  { id: "C2", key: "C2_phase_one_construction", name: "第一期工程施工", text: "執行第一期工項、檢核、驗收與進度證據。" },
+  { id: "C3", key: "C3_phase_two_construction", name: "第二期工程施工", text: "執行第二期工項、追加減、檢核與驗收。" },
+  { id: "C4", key: "C4_phase_three_construction", name: "第三期工程施工", text: "執行第三期工項、完工與交屋前檢核。" },
+  { id: "C5", key: "C5_warranty_aftercare", name: "保固修繕及售後服務", text: "管理交屋、保固、修繕與售後服務紀錄。" },
 ];
-
-gates.splice(
-  3,
-  0,
-  { id: "D4", name: "提案與風險審查", text: "確認提案、預算、風險與必要證據。" },
-  { id: "D5", name: "契約與開工條件", text: "完成契約、角色與開工前治理條件。" },
-);
 
 const gateRules = [
   { label: "狀態不可跳關", text: "每個 Gate 都需要完成必要文件與檢核，才能進入下一階段。" },
@@ -162,7 +161,7 @@ let projectCases = [
     title: "SM-2026-0002 iSAFE 監管專案",
     sourceCase: "SM-2026-0002",
     source: "StyleMatchAI",
-    stage: "D1_intake",
+    stage: "D1_design_preparation",
     gate: "D1_pending",
     status: "Active",
     risk: 88,
@@ -176,7 +175,7 @@ let projectCases = [
     title: "SM-2026-0003 iSAFE 監管專案",
     sourceCase: "SM-2026-0003",
     source: "StyleMatchAI",
-    stage: "D3_design_match",
+    stage: "D3_basic_design_finalization",
     gate: "D3_review",
     status: "Active",
     risk: 42,
@@ -209,9 +208,28 @@ function getActiveCase() {
   return projectCases.find((item) => item.id === activeCaseId) || projectCases[0];
 }
 
+async function loadStateMachine() {
+  try {
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/state-machine`);
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const contract = await response.json();
+    if (!Array.isArray(contract.stages) || contract.stages.length !== 10) throw new Error("State contract must contain ten stages.");
+    r5Contract.version = contract.contract_version;
+    gates = contract.stages.map((stage) => ({
+      id: stage.code,
+      key: stage.key,
+      name: stage.name,
+      text: stage.description,
+      requiredEvidence: stage.required_evidence || [],
+    }));
+  } catch (error) {
+    console.warn("iSAFE state contract unavailable; using the bundled R5.2 ten-stage registry.", error);
+  }
+}
+
 async function loadProjectCases() {
   try {
-    const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || "http://127.0.0.1:4180";
+    const previousActiveCaseId = activeCaseId;
     const response = await fetch(`${apiOrigin}/api/v1/isafe/cases`, {
       headers: {
         "X-Tenant-Id": "tenant_local_tigi",
@@ -235,7 +253,7 @@ async function loadProjectCases() {
       agency: item.agency || "尚未指派",
       designer: item.designer || "尚未指派",
       owner: item.owner || "local-admin",
-      schemaVersion: item.schema_version || "20260721_R5",
+      schemaVersion: item.schema_version || "20260722_R5_2",
       tenantId: item.tenant_id || "-",
       organizationId: item.organization_id || "-",
       journeyId: item.journey_id || "-",
@@ -265,7 +283,9 @@ async function loadProjectCases() {
     const requestedCase = new URLSearchParams(window.location.search).get("case");
     activeCaseId = projectCases.some((item) => item.id === requestedCase)
       ? requestedCase
-      : projectCases[0].id;
+      : projectCases.some((item) => item.id === previousActiveCaseId)
+        ? previousActiveCaseId
+        : projectCases[0].id;
   } catch (error) {
     console.warn("iSAFE Local API unavailable; using bundled demonstration cases.", error);
   }
@@ -308,7 +328,9 @@ function renderGateMachine() {
     .join("");
 
   const current = gates[currentGate];
-  setText("#currentGateLabel", `目前：${current.id} ${current.name}`);
+  setText("#currentGateLabel", current
+    ? `目前：${current.id} ${current.name}`
+    : currentGate >= gates.length ? "目前：治理完成／結案" : "目前：進案審查（尚未進入 D1）");
 }
 
 function renderGateRules() {
@@ -467,7 +489,7 @@ function renderR5Baseline() {
   const boundary = qs("#r5AiBoundary");
   if (boundary) {
     boundary.innerHTML = `
-      <div><strong>${r5Contract.acceptedAdr}</strong><span>R5 Accepted ADR is the highest interpretation basis.</span></div>
+      <div><strong>${r5Contract.acceptedAdr}</strong><span>R5.2 State Machine Contract is the implementation authority for iSAFE stages.</span></div>
       <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
       <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
     `;
@@ -480,13 +502,14 @@ function renderProjectR5Summary(project) {
 
   const caseEvents = outboxEvents
     .filter((event) => event.correlation_id === project.correlationId)
+    .sort((left, right) => left.id - right.id)
     .map((event) => event.event_type);
   const paymentStatus = project.paymentEligibilities.length
     ? project.paymentEligibilities.map((item) => `${item.gate_stage}:${item.status}`).join(", ")
     : "not_eligible";
 
   target.innerHTML = [
-    ["R5 Baseline", project.schemaVersion || r5Contract.version],
+    ["State Contract", project.schemaVersion || r5Contract.version],
     ["Accepted ADR", r5Contract.acceptedAdr],
     ["Case Version", project.version],
     ["API Base", r5Contract.apiBase],
@@ -506,7 +529,7 @@ function renderProjectWorkspace() {
   const role = getActiveRole();
   const projectGateId = String(project.stage || "D1").split("_")[0];
   const projectGateIndex = gates.findIndex((gate) => gate.id === projectGateId);
-  if (projectGateIndex >= 0) currentGate = projectGateIndex;
+  currentGate = project.stage === "CLOSED" ? gates.length : projectGateIndex;
   setText("#projectCaseLabel", project.id);
   setText("#projectTitle", project.title);
   setText("#projectStatus", project.status);
@@ -560,11 +583,47 @@ function renderProjectWorkspace() {
   }
 }
 
-function advanceCase() {
-  currentGate = Math.min(currentGate + 1, gates.length - 1);
-  renderGateMachine();
-  renderProjectWorkspace();
-  setView("gate");
+async function advanceCase() {
+  const project = getActiveCase();
+  const button = qs("#demoCycleBtn");
+  if (!project || !button) return;
+  button.disabled = true;
+  button.textContent = project.stage === "INTAKE_pending" ? "核准進入治理中..." : "Gate 驗證中...";
+  const route = project.stage === "INTAKE_pending"
+    ? "governance/start"
+    : "gates/evaluate";
+  const body = project.stage === "INTAKE_pending"
+    ? { expected_version: project.version, actor: "local-admin", actor_role: activeRole, reason: "Direct intake approved for D1 design preparation" }
+    : { expected_version: project.version, actor: "local-admin", actor_role: activeRole, outcome: "Passed", reason: "Evidence reviewed in project workspace" };
+  try {
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/cases/${encodeURIComponent(project.id)}/${route}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer local-dev-headquarter",
+        "X-Tenant-Id": project.tenantId,
+        "X-Organization-Id": project.organizationId,
+        "X-Purpose": "isafe_governance_decision",
+        "X-Consent-Ref": "consent_local_trial",
+        "Idempotency-Key": `ui-${project.id}-${project.version}-${route.replace("/", "-")}`,
+      },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      const missing = result.details?.missing_evidence;
+      throw new Error(missing?.length ? `尚缺必要證據：${missing.join("、")}` : result.message || `API ${response.status}`);
+    }
+    await loadProjectCases();
+    renderGateMachine();
+    renderProjectWorkspace();
+    setView("projects");
+  } catch (error) {
+    window.alert(`案件未推進。${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = "案件推進";
+  }
 }
 
 function initFromUrl() {
@@ -589,6 +648,7 @@ async function init() {
   const printBtn = qs("#printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
 
+  await loadStateMachine();
   renderGateMachine();
   renderGateRules();
   renderAuditRows();
