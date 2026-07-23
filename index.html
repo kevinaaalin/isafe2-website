@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>iSAFE 2.0 | 產業數位治理工作台</title>
-    <link rel="stylesheet" href="styles.css?v=20260721-r5" />
+    <link rel="stylesheet" href="styles.css?v=20260723-parity1" />
   </head>
   <body>
     <div class="app-shell">
@@ -31,8 +31,8 @@
             <span>監管專案</span>
           </button>
           <button class="nav-item" data-view="r5" type="button">
-            <span class="nav-icon" aria-hidden="true">R5</span>
-            <span>R5.2 狀態契約</span>
+            <span class="nav-icon" aria-hidden="true">R6</span>
+            <span>R6／R5.2 契約</span>
           </button>
           <button class="nav-item" data-view="passport" type="button">
             <span class="nav-icon" aria-hidden="true">▣</span>
@@ -40,7 +40,7 @@
           </button>
           <button class="nav-item" data-view="checklist" type="button">
             <span class="nav-icon" aria-hidden="true">▦</span>
-            <span>24表單引擎</span>
+            <span>DGM Registry</span>
           </button>
           <button class="nav-item" data-view="risk" type="button">
             <span class="nav-icon" aria-hidden="true">◎</span>
@@ -94,7 +94,7 @@
               <span class="metric-note positive">+18 本月新增</span>
             </article>
             <article class="metric">
-              <span class="metric-label">平均 RiskScore</span>
+              <span class="metric-label">Pilot 風險指標</span>
               <strong>31</strong>
               <span class="metric-note">中低風險</span>
             </article>
@@ -156,7 +156,7 @@
               <ul class="check-list">
                 <li>iSAFE 必須與 TWCID 媒合平台架構性脫鉤。</li>
                 <li>公會不是通路，而是產業治理中心共同推動者。</li>
-                <li>Gate 狀態、PGP、RiskScore 形成可稽核資料。</li>
+                <li>Gate 狀態、PGP 與風險提示形成可稽核資料；正式 RiskScore 另需授權核定。</li>
                 <li>Checklist 與 Evidence Engine 補齊 SBIR V2.1 技術深度。</li>
                 <li>G-Level 與 Governance Credit 承接商業化價值。</li>
               </ul>
@@ -170,7 +170,7 @@
             <article class="surface span-4">
               <p class="section-kicker">2027-2028</p>
               <h2>AI Governance</h2>
-              <p>RiskScore、AI Agent、AI 監工與公會治理中心進入規模化。</p>
+              <p>正式 RiskScore、AI Agent、AI 監工與公會治理中心列為後續規模化能力。</p>
             </article>
             <article class="surface span-4">
               <p class="section-kicker">2029-2035</p>
@@ -226,6 +226,18 @@
                 </div>
                 <div class="role-switcher" id="roleSwitcher" aria-label="角色切換"></div>
               </div>
+            </article>
+
+            <article class="surface span-12 operations-surface">
+              <div class="section-head operations-head">
+                <div>
+                  <p class="section-kicker">Legacy Functional Parity</p>
+                  <h2>監管執行工作區</h2>
+                </div>
+                <div class="operations-summary" id="legacySummary">載入案件作業資料</div>
+              </div>
+              <div class="operations-tabs" id="legacyTabs" role="tablist" aria-label="監管執行功能"></div>
+              <div class="operations-panel" id="legacyPanel" aria-live="polite"></div>
             </article>
 
             <article class="surface span-7">
@@ -309,10 +321,10 @@
             <article class="surface span-12">
               <div class="section-head">
                 <div>
-                  <p class="section-kicker">Checklist24 x 2025 TWCID Forms</p>
-                  <h2 id="checklist-title">24 張檢核手冊 v8 表單化升級</h2>
+                  <p class="section-kicker">iSAFE-DGM Registry Status</p>
+                  <h2 id="checklist-title">案件檢核已上線，24 項 DGM 待權威來源</h2>
                 </div>
-                <span class="status-pill">20 張表單補強 24 張手冊</span>
+                <span class="status-pill warning">SOURCE_REQUIRED 24/24</span>
               </div>
               <div class="checklist-summary">
                 <div>
@@ -320,12 +332,12 @@
                   <span>31 頁、20 張現場可填寫檢核表，含勾選、異常註記、補充說明、規格與設備欄位。</span>
                 </div>
                 <div>
-                  <strong>24 張檢核手冊</strong>
-                  <span>正式手冊架構，涵蓋環境控制、監視保全、防水、完工交付等補充項目。</span>
+                  <strong>iSAFE-DGM-01～24</strong>
+                  <span>目前僅保留穩定 ID 範圍；權威名稱、正文、Owner、版本與 checksum 尚未取得。</span>
                 </div>
                 <div>
-                  <strong>v8 升級方向</strong>
-                  <span>保留手冊說明，新增現場表單欄位，轉成可回填 iSAFE Gate、PGP、RiskScore 的資料結構。</span>
+                  <strong>可執行基線</strong>
+                  <span>82 項 TWCID 舊站檢核已可回填案件、Evidence、Gate 與 Audit；不得等同 24 份正式 DGM。</span>
                 </div>
               </div>
             </article>
@@ -338,7 +350,7 @@
                 <div><strong>證據上傳</strong><span>照片、PDF、報價單、材質表、設備規格、驗收紀錄</span></div>
                 <div><strong>異常管理</strong><span>異常註記、補充說明、修正期限、責任人、複查結果</span></div>
                 <div><strong>Gate 權限</strong><span>必填、條件必填、可選填、未完成禁止進入下一階段</span></div>
-                <div><strong>RiskScore</strong><span>防水、漏水、蟲害、公共防護、社區限制、追加工程等風險標籤</span></div>
+                <div><strong>Pilot 風險提示</strong><span>僅供本地驗證；正式分數須保留規則版本、來源、人工確認與授權核定</span></div>
                 <div><strong>PGP 履歷</strong><span>案件編號、階段、日期、簽核者、版本、不可回溯紀錄</span></div>
               </div>
             </article>
@@ -361,8 +373,8 @@
               <div class="upgrade-map">
                 <div><strong>手冊說明</strong><span>目的、適用時機、應注意事項、容易出錯、預防措施。</span></div>
                 <div><strong>現場檢核</strong><span>2025 表單的勾選欄、異常註記、補充說明、設備規格與施工紀錄。</span></div>
-                <div><strong>系統治理</strong><span>Gate 驗證、PGP 證據鏈、RiskScore 風險提示、後台稽核履歷。</span></div>
-                <div><strong>產業標準</strong><span>24 張不縮回 20 張；20 張 PDF 作為共同欄位來源，4 張補充項目依同規格擴寫。</span></div>
+                <div><strong>系統治理</strong><span>Gate 驗證、PGP 證據鏈、Pilot 風險提示與後台稽核履歷。</span></div>
+                <div><strong>發布邊界</strong><span>取得並核准 24 項權威來源前，只能標示 Registry 待補，不建立推測正文。</span></div>
               </div>
             </article>
           </div>
@@ -371,8 +383,8 @@
         <section class="view" id="risk" aria-labelledby="risk-title">
           <div class="layout-grid">
             <article class="surface span-4">
-              <p class="section-kicker">AI RiskScore</p>
-              <h2 id="risk-title">案件風險評分</h2>
+              <p class="section-kicker">Pilot Risk Indicator</p>
+              <h2 id="risk-title">本地風險提示，尚非正式 RiskScore</h2>
               <div class="risk-dial" aria-label="Risk score 31">
                 <div class="dial-ring">
                   <strong>31</strong>
@@ -452,13 +464,13 @@
               <div class="section-head">
                 <div>
                   <p class="section-kicker">System Architecture</p>
-                  <h2 id="architecture-title">前後端分離與 AI 混合雲架構</h2>
+                  <h2 id="architecture-title">目標架構（To-Be）：前後端分離與 AI 混合雲</h2>
                 </div>
                 <span class="status-pill">SBIR V2.1</span>
               </div>
               <div class="tech-stack">
                 <div><strong>Next.js / React</strong><span>會員端、業主端、總部與公會儀表板</span></div>
-                <div><strong>FastAPI</strong><span>Gate、PGP、RiskScore 與治理 API</span></div>
+                <div><strong>FastAPI（規劃）</strong><span>未來承載 Gate、PGP、正式 RiskScore 與治理 API</span></div>
                 <div><strong>PostgreSQL</strong><span>案件、狀態、檢核、證據與信用資料</span></div>
                 <div><strong>Redis</strong><span>任務佇列、快取、通知與非同步處理</span></div>
                 <div><strong>MinIO / S3</strong><span>圖說、照片、合約與 Evidence Vault</span></div>
@@ -551,19 +563,23 @@
               <div class="section-head">
                 <div>
                   <p class="section-kicker">TIGI Official Edition</p>
-                  <h2 id="r5-title">iSAFE 2.0 R5.2 狀態機契約</h2>
+                  <h2 id="r5-title">TIGI R6 文件基線與 iSAFE R5.2 執行契約</h2>
                 </div>
                 <span class="status-pill good">Accepted ADR</span>
               </div>
               <div class="r5-hero">
                 <div>
                   <span class="r5-label">Document Baseline</span>
-                  <strong>TIGI R5.2 Corrected Release Candidate</strong>
-                  <p>本地網站以 R5.2 狀態機契約為 iSAFE 階段依據，採用 13 個跨產品 canonical IDs，並將 Gate、契約付款里程碑、付款資格及付款執行分離。</p>
+                  <strong>TIGI R6 Independent Release Candidate</strong>
+                  <p>R6 是文件母本；本地網站仍以 R5.2 狀態機作為十階段執行依據，並以 Legacy Parity 契約承載舊站監管項目。</p>
                 </div>
                 <div class="r5-contract-id">
-                  <span>Contract</span>
-                  <strong>isafe-state-machine-r5.2.json</strong>
+                  <span>Document Master</span>
+                  <strong>20260723_R6_Independent_RC</strong>
+                  <span>State Contract</span>
+                  <strong>20260722_R5_2</strong>
+                  <span>Legacy Parity</span>
+                  <strong>20260723_R5_2_PARITY_1</strong>
                 </div>
               </div>
             </article>
@@ -611,6 +627,6 @@
         </section>
       </main>
     </div>
-    <script src="app.js?v=20260721-r5"></script>
+    <script src="app.js?v=20260723-parity1"></script>
   </body>
 </html>

@@ -1,11 +1,11 @@
 const views = {
-  r5: "iSAFE 2.0 R5.2 狀態機契約與正式事件",
+  r5: "TIGI R6 文件基線與 iSAFE R5.2 執行契約",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   projects: "iSAFE 監管專案工作台",
   passport: "案件治理護照與證據鏈",
-  checklist: "24 張檢核手冊表單化引擎",
-  risk: "AI 風險評分與預警",
+  checklist: "iSAFE-DGM Registry 與案件檢核",
+  risk: "Pilot 風險指標與人工覆核邊界",
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",
   architecture: "技術架構與 API",
@@ -16,13 +16,34 @@ const views = {
 const r5Contract = {
   version: "20260722_R5_2",
   acceptedAdr: "R5.2 State Machine ADR",
-  baseline: "TIGI R5.2 Corrected Release Candidate",
+  documentVersion: "20260723_R6_Independent_RC",
+  documentStatus: "Independent Release Candidate",
+  parityVersion: "20260723_R5_2_PARITY_1",
+  baseline: "TIGI R6 Independent Release Candidate",
   contractFile: "isafe-state-machine-r5.2.json",
   canonicalIdCount: 13,
   apiBase: "/api/v1",
 };
 
 const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || "http://127.0.0.1:4180";
+const hasConfiguredApi = Boolean(window.ISAFE_CONFIG?.apiOrigin);
+const isLocalRuntime = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const forceStaticPreview = new URLSearchParams(window.location.search).get("static") === "1";
+const apiEnabled = !forceStaticPreview && (hasConfiguredApi || isLocalRuntime);
+const browserTraceId = `web-${globalThis.crypto?.randomUUID?.() || Date.now()}`;
+
+function apiContextHeaders({ tenantId = "tenant_local_tigi", organizationId = "org_local_headquarter", purpose, idempotencyKey, authorize = false } = {}) {
+  const headers = {
+    "X-Tenant-Id": tenantId,
+    "X-Organization-Id": organizationId,
+    "X-Purpose": purpose || "isafe_governance_review",
+    "X-Consent-Ref": "consent_local_trial",
+    "X-Trace-Id": browserTraceId,
+  };
+  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
+  if (authorize) headers.Authorization = "Bearer local-dev-headquarter";
+  return headers;
+}
 
 const r5Events = [
   {
@@ -78,7 +99,7 @@ const gateRules = [
   { label: "Checklist 引擎", text: "依案件階段產生檢核項目，避免靠人工記憶治理。" },
   { label: "Evidence Engine", text: "照片、文件、簽核與時間戳統一寫入 Evidence Vault。" },
   { label: "不可逆治理", text: "已核准節點保留版本，不以覆蓋方式修改歷史。" },
-  { label: "風險即時預警", text: "RiskScore 依缺件、延遲、異常變更與爭議訊號更新。" },
+  { label: "Pilot 風險提示", text: "目前僅呈現本地測試指標；正式 RiskScore 須具規則版本、來源與授權角色核定。" },
 ];
 
 const audit = [
@@ -190,6 +211,34 @@ let outboxEvents = [];
 let currentGate = 2;
 let activeRole = "headquarter";
 let activeCaseId = "IS-2026-0001";
+let legacyWorkspace = null;
+let activeLegacyTab = "checklist";
+let legacyStageFilter = null;
+let legacyFallbackContract = null;
+let legacyReadOnly = false;
+
+projectCases = projectCases.map((item, index) => ({
+  ...item,
+  riskAssessment: {
+    value: item.risk,
+    status: "pilot_unverified",
+    formal: false,
+    rule_version: null,
+    human_confirmation: false,
+  },
+  schemaVersion: r5Contract.version,
+  tenantId: "demo_tenant",
+  organizationId: "demo_organization",
+  journeyId: `demo_journey_${index + 1}`,
+  stylematchProjectId: `demo_stylematch_${index + 1}`,
+  projectId: `demo_project_${index + 1}`,
+  handoverId: `demo_handover_${index + 1}`,
+  correlationId: `demo_correlation_${index + 1}`,
+  traceId: `demo_trace_${index + 1}`,
+  version: 1,
+  paymentEligibilities: [],
+  auditLogs: [],
+}));
 
 function qs(selector, root = document) {
   return root.querySelector(selector);
@@ -197,6 +246,15 @@ function qs(selector, root = document) {
 
 function qsa(selector, root = document) {
   return Array.from(root.querySelectorAll(selector));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function setText(selector, text) {
@@ -209,6 +267,7 @@ function getActiveCase() {
 }
 
 async function loadStateMachine() {
+  if (!apiEnabled) return;
   try {
     const response = await fetch(`${apiOrigin}/api/v1/isafe/state-machine`);
     if (!response.ok) throw new Error(`API ${response.status}`);
@@ -227,16 +286,86 @@ async function loadStateMachine() {
   }
 }
 
+async function loadLegacyFallbackContract() {
+  try {
+    const response = await fetch("./contracts/isafe-legacy-parity-r5.2.json");
+    if (!response.ok) throw new Error(`Contract ${response.status}`);
+    legacyFallbackContract = await response.json();
+  } catch (error) {
+    console.error("Bundled legacy parity contract could not be loaded.", error);
+  }
+}
+
+function createReadOnlyLegacyWorkspace(project) {
+  if (!legacyFallbackContract) return null;
+  const checklist = Object.entries(legacyFallbackContract.checklists).flatMap(([stage, labels]) =>
+    labels.map((label, index) => ({
+      checklist_item_id: `preview-${stage}-${index + 1}`,
+      stage,
+      label,
+      position: index + 1,
+      status: "pending",
+      required: true,
+      source: "legacy_contract",
+      completed_by: null,
+      completed_at: null,
+      note: null,
+    })),
+  );
+  const milestones = legacyFallbackContract.payment_milestones.map((item) => ({
+    ...item,
+    milestone_id: `preview-${item.code}`,
+    amount: 0,
+    status: "preview",
+    due_at: null,
+    receipt_id: null,
+  }));
+  return {
+    read_only: true,
+    contract_version: legacyFallbackContract.contract_version,
+    checklist,
+    checklist_summary: {
+      total: checklist.length,
+      completed: 0,
+      current_stage_total: checklist.filter((item) => item.stage === project.stage).length,
+      current_stage_completed: 0,
+    },
+    baseline: {
+      baseline_id: "preview-baseline",
+      current_version_id: "preview-baseline-v1",
+      current_version: 1,
+      currency: "TWD",
+      design_total: 0,
+      construction_total: 0,
+      contract_ref: null,
+      status: "preview",
+    },
+    baseline_history: [{
+      baseline_version_id: "preview-baseline-v1",
+      version_no: 1,
+      currency: "TWD",
+      design_total: 0,
+      construction_total: 0,
+      contract_ref: null,
+      status: "preview",
+      reason: "GitHub Pages 靜態唯讀預覽，不代表正式案件資料。",
+      created_by: "static-preview",
+      created_at: "2026-07-23T00:00:00+08:00",
+    }],
+    milestones,
+    receipts: [],
+    change_orders: [],
+    messages: [],
+    evidence_files: [],
+  };
+}
+
 async function loadProjectCases() {
+  if (!apiEnabled) return;
   try {
     const previousActiveCaseId = activeCaseId;
     const response = await fetch(`${apiOrigin}/api/v1/isafe/cases`, {
-      headers: {
-        "X-Tenant-Id": "tenant_local_tigi",
-        "X-Organization-Id": "org_local_headquarter",
-        "X-Purpose": "isafe_governance_review",
-        "X-Consent-Ref": "consent_local_trial",
-      },
+      headers: apiContextHeaders({ purpose: "isafe_governance_review" }),
     });
     if (!response.ok) throw new Error(`API ${response.status}`);
     const payload = await response.json();
@@ -250,6 +379,13 @@ async function loadProjectCases() {
       gate: item.gate_status,
       status: item.status === "active" ? "Active" : item.status,
       risk: item.risk_score,
+      riskAssessment: item.risk_assessment || {
+        value: item.risk_score,
+        status: "pilot_unverified",
+        formal: false,
+        rule_version: null,
+        human_confirmation: false,
+      },
       agency: item.agency || "尚未指派",
       designer: item.designer || "尚未指派",
       owner: item.owner || "local-admin",
@@ -264,17 +400,13 @@ async function loadProjectCases() {
       traceId: item.trace_id || "-",
       version: item.version || 1,
       paymentEligibilities: Array.isArray(item.payment_eligibilities) ? item.payment_eligibilities : [],
+      auditLogs: Array.isArray(item.audit_logs) ? item.audit_logs : [],
       evidence: Array.isArray(item.evidence) && item.evidence.length
         ? item.evidence.map((entry) => entry.evidence_type)
         : ["case_master", "timeline", "audit_log"],
     }));
     const outboxResponse = await fetch(`${apiOrigin}/api/v1/outbox-events`, {
-      headers: {
-        "X-Tenant-Id": "tenant_local_tigi",
-        "X-Organization-Id": "org_local_headquarter",
-        "X-Purpose": "isafe_governance_review",
-        "X-Consent-Ref": "consent_local_trial",
-      },
+      headers: apiContextHeaders({ purpose: "isafe_governance_review" }),
     });
     if (outboxResponse.ok) {
       const outboxPayload = await outboxResponse.json();
@@ -307,7 +439,10 @@ function setView(viewId) {
   });
 
   setText("#view-title", views[nextView]);
-  if (nextView === "projects") renderProjectWorkspace();
+  if (nextView === "projects") {
+    renderProjectWorkspace();
+    loadLegacyWorkspace();
+  }
   if (nextView === "r5") renderR5Baseline();
 }
 
@@ -450,9 +585,15 @@ function renderCaseSelect() {
     .map((item) => `<option value="${item.id}" ${item.id === activeCaseId ? "selected" : ""}>${item.id}</option>`)
     .join("");
 
-  select.onchange = (event) => {
+  select.onchange = async (event) => {
     activeCaseId = event.target.value;
+    const url = new URL(window.location.href);
+    url.searchParams.set("case", activeCaseId);
+    window.history.replaceState({}, "", url);
+    legacyWorkspace = null;
+    legacyStageFilter = null;
     renderProjectWorkspace();
+    await loadLegacyWorkspace();
   };
 }
 
@@ -481,7 +622,7 @@ function renderR5Baseline() {
   const canonicalIds = qs("#r5CanonicalIds");
   if (canonicalIds) {
     canonicalIds.innerHTML = [
-      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>canonical IDs adopted from ${r5Contract.version}</span></div>`,
+      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>canonical IDs defined by ${r5Contract.documentVersion};未全部落地</span></div>`,
       ...r5CanonicalIds.map((id) => `<code>${id}</code>`),
     ].join("");
   }
@@ -490,6 +631,7 @@ function renderR5Baseline() {
   if (boundary) {
     boundary.innerHTML = `
       <div><strong>${r5Contract.acceptedAdr}</strong><span>R5.2 State Machine Contract is the implementation authority for iSAFE stages.</span></div>
+      <div><strong>${r5Contract.documentVersion}</strong><span>R6 是文件母本 RC；不取代 R5.2 十階段執行契約。</span></div>
       <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
       <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
     `;
@@ -509,7 +651,9 @@ function renderProjectR5Summary(project) {
     : "not_eligible";
 
   target.innerHTML = [
+    ["Document Master", r5Contract.documentVersion],
     ["State Contract", project.schemaVersion || r5Contract.version],
+    ["Legacy Parity", legacyWorkspace?.contract_version || r5Contract.parityVersion],
     ["Accepted ADR", r5Contract.acceptedAdr],
     ["Case Version", project.version],
     ["API Base", r5Contract.apiBase],
@@ -517,6 +661,7 @@ function renderProjectR5Summary(project) {
     ["Payment Eligibility", paymentStatus],
     ["Payment Approval", "not approved"],
     ["Payment Execution", "not executed"],
+    ["Risk Status", project.riskAssessment?.formal ? "formally confirmed" : "pilot indicator; not formally confirmed"],
     ["AI Boundary", "recommend only; human review required"],
   ]
     .map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`)
@@ -555,7 +700,7 @@ function renderProjectWorkspace() {
       ["來源系統", project.source],
       ["目前 Stage", project.stage],
       ["Gate 狀態", project.gate],
-      ["RiskScore", project.risk],
+      ["Pilot 風險指標", `${project.riskAssessment?.value ?? project.risk ?? "-"} · 未經正式規則與授權角色核定`],
       ["代理商", project.agency],
       ["設計師", project.designer],
       ["業主", project.owner],
@@ -583,6 +728,440 @@ function renderProjectWorkspace() {
   }
 }
 
+const legacyTabs = [
+  ["checklist", "逐項檢核"],
+  ["evidence", "文件與圖片"],
+  ["finance", "合約與付款"],
+  ["changes", "追加工程"],
+  ["messages", "留言與歷程"],
+];
+
+function legacyHeaders(project, idempotencyKey) {
+  return {
+    "Content-Type": "application/json",
+    ...apiContextHeaders({
+      tenantId: project.tenantId,
+      organizationId: project.organizationId,
+      purpose: "isafe_legacy_functional_parity",
+      idempotencyKey: idempotencyKey || `ui-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      authorize: true,
+    }),
+  };
+}
+
+async function loadLegacyWorkspace() {
+  const project = getActiveCase();
+  const panel = qs("#legacyPanel");
+  if (!project || !panel) return;
+  if (!apiEnabled) {
+    legacyReadOnly = true;
+    legacyWorkspace = createReadOnlyLegacyWorkspace(project);
+    legacyStageFilter = gates.some((gate) => gate.key === project.stage) ? project.stage : gates[0].key;
+    renderLegacyWorkspace();
+    return;
+  }
+  panel.innerHTML = `<div class="operations-loading">載入監管資料中...</div>`;
+  try {
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/cases/${encodeURIComponent(project.id)}/legacy`, {
+      headers: apiContextHeaders({
+        tenantId: project.tenantId,
+        organizationId: project.organizationId,
+        purpose: "isafe_legacy_functional_parity",
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.message || `API ${response.status}`);
+    legacyWorkspace = payload.workspace;
+    legacyReadOnly = false;
+    if (!legacyStageFilter) {
+      legacyStageFilter = gates.some((gate) => gate.key === project.stage) ? project.stage : gates[0].key;
+    }
+    renderLegacyWorkspace();
+  } catch (error) {
+    legacyReadOnly = true;
+    legacyWorkspace = createReadOnlyLegacyWorkspace(project);
+    if (legacyWorkspace) {
+      renderLegacyWorkspace();
+    } else {
+      qs("#legacySummary").textContent = "作業模組離線";
+      panel.innerHTML = `<div class="operations-error">無法載入監管執行資料：${escapeHtml(error.message)}</div>`;
+    }
+  }
+}
+
+function renderLegacyWorkspace() {
+  const tabs = qs("#legacyTabs");
+  const panel = qs("#legacyPanel");
+  const summary = qs("#legacySummary");
+  if (!tabs || !panel || !legacyWorkspace) return;
+  const progress = legacyWorkspace.checklist_summary;
+  summary.textContent = `檢核 ${progress.completed}/${progress.total} · ${legacyWorkspace.contract_version}${legacyReadOnly ? " · 靜態唯讀預覽" : ""}`;
+  tabs.innerHTML = legacyTabs.map(([id, label]) => `
+    <button class="operations-tab ${activeLegacyTab === id ? "active" : ""}" data-legacy-tab="${id}" type="button" role="tab" aria-selected="${activeLegacyTab === id}">
+      ${label}
+    </button>
+  `).join("");
+  if (activeLegacyTab === "checklist") panel.innerHTML = renderChecklistPanel();
+  if (activeLegacyTab === "evidence") panel.innerHTML = renderEvidencePanel();
+  if (activeLegacyTab === "finance") panel.innerHTML = renderFinancePanel();
+  if (activeLegacyTab === "changes") panel.innerHTML = renderChangePanel();
+  if (activeLegacyTab === "messages") panel.innerHTML = renderMessagePanel();
+  if (legacyReadOnly) {
+    panel.insertAdjacentHTML("afterbegin", `<div class="read-only-banner"><strong>GitHub Pages 靜態唯讀預覽</strong><span>完整寫入、檔案與稽核功能需連接受保護的 iSAFE API。</span></div>`);
+    qsa("form input, form textarea, form select, form button, .checklist-status", panel).forEach((control) => {
+      control.disabled = true;
+    });
+  }
+  bindLegacyActions();
+}
+
+function renderChecklistPanel() {
+  const items = legacyWorkspace.checklist.filter((item) => item.stage === legacyStageFilter);
+  const completed = items.filter((item) => item.status === "completed").length;
+  return `
+    <div class="operations-toolbar">
+      <label>監管階段
+        <select id="legacyStageSelect">
+          ${gates.map((gate) => `<option value="${gate.key}" ${gate.key === legacyStageFilter ? "selected" : ""}>${gate.id} ${escapeHtml(gate.name)}</option>`).join("")}
+        </select>
+      </label>
+      <div class="progress-copy"><strong>${completed}/${items.length}</strong><span>本階段完成</span></div>
+      <div class="progress-track" aria-label="本階段檢核進度"><span style="width:${items.length ? Math.round(completed / items.length * 100) : 0}%"></span></div>
+    </div>
+    <div class="checklist-execution">
+      ${items.map((item) => `
+        <div class="execution-row status-${item.status}">
+          <span class="execution-marker" aria-hidden="true">${item.status === "completed" ? "✓" : item.status === "exception" ? "!" : item.status === "not_applicable" ? "−" : ""}</span>
+          <div>
+            <strong>${escapeHtml(item.label)}</strong>
+            <small>${item.source === "case_custom" ? "案件自訂" : "TWCID 舊站基線"}${item.completed_by ? ` · ${escapeHtml(item.completed_by)}` : ""}</small>
+          </div>
+          <select class="checklist-status" data-checklist-id="${item.checklist_item_id}" aria-label="${escapeHtml(item.label)}狀態">
+            <option value="pending" ${item.status === "pending" ? "selected" : ""}>待檢核</option>
+            <option value="completed" ${item.status === "completed" ? "selected" : ""}>完成</option>
+            <option value="exception" ${item.status === "exception" ? "selected" : ""}>異常</option>
+            <option value="not_applicable" ${item.status === "not_applicable" ? "selected" : ""}>不適用</option>
+          </select>
+        </div>
+      `).join("")}
+    </div>
+    <form class="inline-form" id="addChecklistForm">
+      <label>新增案件檢核條文<input name="label" required maxlength="160" placeholder="輸入檢核項目名稱" /></label>
+      <button class="secondary-action" type="submit">新增條文</button>
+    </form>
+  `;
+}
+
+function renderEvidencePanel() {
+  return `
+    <form class="form-grid" id="evidenceUploadForm">
+      <label>證據類型
+        <select name="evidence_type">
+          <option value="project_file">專案文件</option>
+          <option value="design_contract">設計合約</option>
+          <option value="construction_contract">工程合約</option>
+          <option value="project_photo">現場照片</option>
+          <option value="drawing">設計圖說</option>
+          <option value="acceptance_record">驗收紀錄</option>
+        </select>
+      </label>
+      <label>顯示名稱<input name="label" maxlength="120" placeholder="例如：D2 現場丈量照片" /></label>
+      <label class="file-field">選擇文件或圖片<input name="file" type="file" required accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx" /></label>
+      <button class="primary-action" type="submit">上傳證據</button>
+    </form>
+    <div class="data-table evidence-table">
+      <div class="data-row header"><span>日期</span><span>類型／名稱</span><span>階段</span><span>檔案</span><span>動作</span></div>
+      ${legacyWorkspace.evidence_files.length ? legacyWorkspace.evidence_files.map((item) => `
+        <div class="data-row">
+          <span>${formatDate(item.created_at)}</span>
+          <span><strong>${escapeHtml(item.label || item.evidence_type)}</strong><small>${escapeHtml(item.evidence_type)}</small></span>
+          <span>${escapeHtml(stageLabel(item.step_key))}</span>
+          <span>${escapeHtml(item.file_name)}<small>${formatBytes(item.file_size)}</small></span>
+          <span><button class="icon-action file-download" type="button" data-kind="evidence" data-file-id="${item.evidence_id}" title="下載檔案" aria-label="下載 ${escapeHtml(item.file_name)}">↓</button></span>
+        </div>
+      `).join("") : `<div class="empty-state">尚未上傳文件或圖片。</div>`}
+    </div>
+  `;
+}
+
+function renderFinancePanel() {
+  const baseline = legacyWorkspace.baseline;
+  const baselineHistory = legacyWorkspace.baseline_history || [];
+  return `
+    <div class="baseline-version-banner">
+      <strong>目前合約基線 v${baseline.current_version || 1}</strong>
+      <span>${escapeHtml(baseline.current_version_id || "尚未建立版本識別碼")} · 每次儲存均新增不可變版本</span>
+    </div>
+    <form class="form-grid finance-form" id="baselineForm">
+      <label>設計總費用<input name="design_total" type="number" min="0" step="1" value="${baseline.design_total}" /></label>
+      <label>工程總費用<input name="construction_total" type="number" min="0" step="1" value="${baseline.construction_total}" /></label>
+      <label>合約編號<input name="contract_ref" value="${escapeHtml(baseline.contract_ref || "")}" placeholder="例如：CONTRACT-2026-001" /></label>
+      <label>基線狀態
+        <select name="status"><option value="draft" ${baseline.status === "draft" ? "selected" : ""}>草稿</option><option value="approved" ${baseline.status === "approved" ? "selected" : ""}>已核准</option></select>
+      </label>
+      <label class="wide-field">版本建立原因<input name="reason" required maxlength="240" placeholder="說明本次金額、範圍或核准狀態變更原因" /></label>
+      <button class="primary-action" type="submit">建立新基線版本</button>
+    </form>
+    <div class="data-table baseline-history-table">
+      <div class="data-row header"><span>版本</span><span>建立時間／建立者</span><span>狀態與合約</span><span>金額</span><span>建立原因</span></div>
+      ${baselineHistory.map((item) => `
+        <div class="data-row">
+          <span><strong>v${item.version_no}</strong><small>${escapeHtml(item.baseline_version_id)}</small></span>
+          <span>${formatDateTime(item.created_at)}<small>${escapeHtml(item.created_by)}</small></span>
+          <span>${escapeHtml(item.status)}<small>${escapeHtml(item.contract_ref || "未填合約編號")}</small></span>
+          <span>${formatMoney(item.design_total + item.construction_total)}<small>設計 ${formatMoney(item.design_total)}／工程 ${formatMoney(item.construction_total)}</small></span>
+          <span>${escapeHtml(item.reason)}</span>
+        </div>
+      `).join("")}
+    </div>
+    <div class="milestone-grid">
+      ${legacyWorkspace.milestones.map((item) => `
+        <div class="milestone-item">
+          <span>${escapeHtml(item.phase === "design" ? "設計" : "工程")} · ${item.percentage}%</span>
+          <strong>${escapeHtml(item.label)}</strong>
+          <b>${formatMoney(item.amount)}</b>
+          <small>${escapeHtml(stageLabel(item.stage))} · ${escapeHtml(item.status)}</small>
+        </div>
+      `).join("")}
+    </div>
+    <form class="form-grid receipt-form" id="receiptForm">
+      <label>付款里程碑
+        <select name="milestone_id">${legacyWorkspace.milestones.map((item) => `<option value="${item.milestone_id}">${escapeHtml(item.label)} · ${formatMoney(item.amount)}</option>`).join("")}</select>
+      </label>
+      <label>收據標題<input name="title" required maxlength="120" placeholder="例如：設計簽約金收據" /></label>
+      <label>實付金額<input name="amount" type="number" min="0" step="1" /></label>
+      <label class="file-field">收據檔案<input name="file" type="file" accept="image/*,.pdf" /></label>
+      <button class="secondary-action" type="submit">提交付款證明</button>
+    </form>
+    <div class="compact-list">
+      ${legacyWorkspace.receipts.length ? legacyWorkspace.receipts.map((item) => `
+        <div><strong>${escapeHtml(item.title)}</strong><span>${formatMoney(item.amount)} · ${escapeHtml(item.status)} · ${formatDate(item.created_at)}</span>${item.file_name ? `<button class="icon-action file-download" data-kind="receipts" data-file-id="${item.receipt_id}" type="button" title="下載收據" aria-label="下載收據">↓</button>` : ""}</div>
+      `).join("") : `<div class="empty-state">尚無付款證明。</div>`}
+    </div>
+  `;
+}
+
+function renderChangePanel() {
+  return `
+    <form class="form-grid" id="changeOrderForm">
+      <label>追加工程名稱<input name="title" required maxlength="120" placeholder="例如：客廳追加插座" /></label>
+      <label>追加金額<input name="amount_delta" type="number" step="1" value="0" /></label>
+      <label>工期增減天數<input name="schedule_delta_days" type="number" step="1" value="0" /></label>
+      <label class="wide-field">原因<textarea name="reason" required maxlength="800" placeholder="說明需求、責任與影響"></textarea></label>
+      <button class="primary-action" type="submit">提出追加工程</button>
+    </form>
+    <div class="data-table change-table">
+      <div class="data-row header"><span>日期</span><span>項目</span><span>金額</span><span>工期</span><span>狀態</span></div>
+      ${legacyWorkspace.change_orders.length ? legacyWorkspace.change_orders.map((item) => `
+        <div class="data-row">
+          <span>${formatDate(item.created_at)}</span>
+          <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.reason)}</small></span>
+          <span>${formatMoney(item.amount_delta)}</span>
+          <span>${item.schedule_delta_days >= 0 ? "+" : ""}${item.schedule_delta_days} 天</span>
+          <span>${escapeHtml(item.status)}</span>
+        </div>
+      `).join("") : `<div class="empty-state">尚無追加工程紀錄。</div>`}
+    </div>
+  `;
+}
+
+function renderMessagePanel() {
+  const project = getActiveCase();
+  return `
+    <form class="message-compose" id="messageForm">
+      <select name="category" aria-label="訊息類型">
+        <option value="message">案件留言</option>
+        <option value="question">我要提問</option>
+        <option value="dispute">爭議諮詢</option>
+      </select>
+      <textarea name="body" required maxlength="1200" placeholder="輸入案件留言或問題"></textarea>
+      <button class="primary-action" type="submit">送出</button>
+    </form>
+    <div class="timeline-columns">
+      <section>
+        <h3>案件對話</h3>
+        <div class="timeline-list">${legacyWorkspace.messages.length ? legacyWorkspace.messages.map((item) => `
+          <div><span>${escapeHtml(item.category)}</span><strong>${escapeHtml(item.actor_role)} · ${escapeHtml(item.actor)}</strong><p>${escapeHtml(item.body)}</p><time>${formatDateTime(item.created_at)}</time></div>
+        `).join("") : `<div class="empty-state">尚無案件留言。</div>`}</div>
+      </section>
+      <section>
+        <h3>治理歷程</h3>
+        <div class="timeline-list">${project.auditLogs?.length ? project.auditLogs.map((item) => `
+          <div><span>${escapeHtml(item.action)}</span><strong>${escapeHtml(item.actor)}</strong><p>${escapeHtml(item.detail || "")}</p><time>${formatDateTime(item.created_at)}</time></div>
+        `).join("") : `<div class="empty-state">尚無治理歷程。</div>`}</div>
+      </section>
+    </div>
+  `;
+}
+
+function bindLegacyActions() {
+  qsa(".operations-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeLegacyTab = button.dataset.legacyTab;
+      renderLegacyWorkspace();
+    });
+  });
+  const stageSelect = qs("#legacyStageSelect");
+  if (stageSelect) stageSelect.addEventListener("change", () => {
+    legacyStageFilter = stageSelect.value;
+    renderLegacyWorkspace();
+  });
+  qsa(".checklist-status").forEach((select) => select.addEventListener("change", async () => {
+    await runLegacyAction(`checklist/${encodeURIComponent(select.dataset.checklistId)}/status`, { status: select.value, actor: "local-admin" });
+  }));
+  const addChecklistForm = qs("#addChecklistForm");
+  if (addChecklistForm) addChecklistForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runLegacyAction("checklist", { stage: legacyStageFilter, label: addChecklistForm.elements.label.value, actor: "local-admin" });
+  });
+  const evidenceForm = qs("#evidenceUploadForm");
+  if (evidenceForm) evidenceForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = evidenceForm.elements.file.files[0];
+    if (!file) return;
+    await runLegacyAction("evidence-files", {
+      evidence_type: evidenceForm.elements.evidence_type.value,
+      label: evidenceForm.elements.label.value || file.name,
+      file_name: file.name,
+      mime_type: file.type || "application/octet-stream",
+      content_base64: await fileToBase64(file),
+      step_key: legacyStageFilter || getActiveCase().stage,
+      actor: "local-admin",
+    });
+  });
+  const baselineForm = qs("#baselineForm");
+  if (baselineForm) baselineForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runLegacyAction("contract-baseline", {
+      design_total: Number(baselineForm.elements.design_total.value),
+      construction_total: Number(baselineForm.elements.construction_total.value),
+      contract_ref: baselineForm.elements.contract_ref.value,
+      status: baselineForm.elements.status.value,
+      reason: baselineForm.elements.reason.value,
+      actor: "local-admin",
+    });
+  });
+  const receiptForm = qs("#receiptForm");
+  if (receiptForm) receiptForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = receiptForm.elements.file.files[0];
+    await runLegacyAction("receipts", {
+      milestone_id: receiptForm.elements.milestone_id.value,
+      title: receiptForm.elements.title.value,
+      amount: Number(receiptForm.elements.amount.value),
+      file_name: file?.name || null,
+      mime_type: file?.type || null,
+      content_base64: file ? await fileToBase64(file) : null,
+      actor: "local-admin",
+    });
+  });
+  const changeForm = qs("#changeOrderForm");
+  if (changeForm) changeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runLegacyAction("change-orders", {
+      title: changeForm.elements.title.value,
+      reason: changeForm.elements.reason.value,
+      amount_delta: Number(changeForm.elements.amount_delta.value),
+      schedule_delta_days: Number(changeForm.elements.schedule_delta_days.value),
+      actor: "local-admin",
+    });
+  });
+  const messageForm = qs("#messageForm");
+  if (messageForm) messageForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runLegacyAction("messages", {
+      category: messageForm.elements.category.value,
+      body: messageForm.elements.body.value,
+      actor: "local-admin",
+      actor_role: activeRole,
+    });
+  });
+  qsa(".file-download").forEach((button) => button.addEventListener("click", () => {
+    downloadLegacyFile(button.dataset.kind, button.dataset.fileId);
+  }));
+}
+
+async function runLegacyAction(action, body) {
+  const project = getActiveCase();
+  const panel = qs("#legacyPanel");
+  panel.classList.add("is-busy");
+  try {
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/cases/${encodeURIComponent(project.id)}/legacy/${action}`, {
+      method: "POST",
+      headers: legacyHeaders(project),
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.message || `API ${response.status}`);
+    legacyWorkspace = payload.workspace;
+    activeCaseId = project.id;
+    const url = new URL(window.location.href);
+    url.searchParams.set("case", activeCaseId);
+    window.history.replaceState({}, "", url);
+    await loadProjectCases();
+    renderProjectWorkspace();
+    renderLegacyWorkspace();
+  } catch (error) {
+    window.alert(`作業未完成。${error.message}`);
+  } finally {
+    panel.classList.remove("is-busy");
+  }
+}
+
+async function downloadLegacyFile(kind, id) {
+  const project = getActiveCase();
+  try {
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/cases/${encodeURIComponent(project.id)}/legacy/${kind}/${encodeURIComponent(id)}/file`, {
+      headers: apiContextHeaders({
+        tenantId: project.tenantId,
+        organizationId: project.organizationId,
+        purpose: "isafe_evidence_download",
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.message || `API ${response.status}`);
+    const link = document.createElement("a");
+    link.href = `data:${payload.file.mime_type || "application/octet-stream"};base64,${payload.file.content_base64}`;
+    link.download = payload.file.file_name || "isafe-file";
+    link.click();
+  } catch (error) {
+    window.alert(`檔案無法下載。${error.message}`);
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function stageLabel(stageKey) {
+  const gate = gates.find((item) => item.key === stageKey);
+  return gate ? `${gate.id} ${gate.name}` : stageKey || "-";
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", maximumFractionDigits: 0 }).format(Number(value) || 0);
+}
+
+function formatDate(value) {
+  return value ? new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value)) : "-";
+}
+
+function formatDateTime(value) {
+  return value ? new Intl.DateTimeFormat("zh-TW", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "-";
+}
+
+function formatBytes(value) {
+  const bytes = Number(value) || 0;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
 async function advanceCase() {
   const project = getActiveCase();
   const button = qs("#demoCycleBtn");
@@ -600,12 +1179,13 @@ async function advanceCase() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer local-dev-headquarter",
-        "X-Tenant-Id": project.tenantId,
-        "X-Organization-Id": project.organizationId,
-        "X-Purpose": "isafe_governance_decision",
-        "X-Consent-Ref": "consent_local_trial",
-        "Idempotency-Key": `ui-${project.id}-${project.version}-${route.replace("/", "-")}`,
+        ...apiContextHeaders({
+          tenantId: project.tenantId,
+          organizationId: project.organizationId,
+          purpose: "isafe_governance_decision",
+          idempotencyKey: `ui-${project.id}-${project.version}-${route.replace("/", "-")}`,
+          authorize: true,
+        }),
       },
       body: JSON.stringify(body),
     });
@@ -617,6 +1197,7 @@ async function advanceCase() {
     await loadProjectCases();
     renderGateMachine();
     renderProjectWorkspace();
+    await loadLegacyWorkspace();
     setView("projects");
   } catch (error) {
     window.alert(`案件未推進。${error.message}`);
@@ -643,11 +1224,20 @@ async function init() {
   });
 
   const demoCycleBtn = qs("#demoCycleBtn");
-  if (demoCycleBtn) demoCycleBtn.addEventListener("click", advanceCase);
+  if (demoCycleBtn) {
+    if (apiEnabled) {
+      demoCycleBtn.addEventListener("click", advanceCase);
+    } else {
+      demoCycleBtn.disabled = true;
+      demoCycleBtn.textContent = "靜態預覽";
+      demoCycleBtn.title = "案件推進需連接受保護的 iSAFE API";
+    }
+  }
 
   const printBtn = qs("#printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
 
+  await loadLegacyFallbackContract();
   await loadStateMachine();
   renderGateMachine();
   renderGateRules();
@@ -659,6 +1249,7 @@ async function init() {
   await loadProjectCases();
   renderProjectWorkspace();
   initFromUrl();
+  await loadLegacyWorkspace();
 }
 
 document.addEventListener("DOMContentLoaded", init);
