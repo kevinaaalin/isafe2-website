@@ -1,0 +1,25 @@
+﻿manual_code,manual_title,primary_step,gate_ids,work_item_code,phase_binding,source_item_count,payment_impact,source_status,governance_approval_status,release_integration_status
+iSAFE-DGM-01,現場勘查檢核表,S1／D1 前置作業,G-D1,WI-SURVEY,FIXED,22,設計服務啟動資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-02,需求溝通檢核表,S1／D1 前置作業,G-D1,WI-REQUIREMENT,FIXED,16,設計服務啟動資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-03,平面圖規劃檢核表,S2／D2 平面設計規劃,G-D2,WI-DESIGN-PLAN,FIXED,13,設計階段付款資格（適用時）,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-04,工程圖規劃檢核表,S5／D5 施工大樣及其他約定事項,G-D5,WI-DESIGN-CD,FIXED,13,工程契約及開工條件資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-05,材質確認檢核表,S3／D3 基本設計規劃定案,G-D3｜G-D5｜G-C1｜契約期別Gate,WI-MATERIAL,HYBRID,16,設計／施工期付款資格（依契約）,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-06,裝修歷程簡報檢核表,跨步驟 S1／D1～S10／C5,G-D1～G-C5（支援證據）,WI-PROGRESS-REPORT,RECURRING,13,支援各Gate；不得單獨觸發付款,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-07,工程前置檢核表,S6／C1 工程前置作業,G-C1,WI-PRECON,FIXED,15,開工及相關付款資格（適用時）,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-08,拆除工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-DEMOLITION,CONTRACT_DRIVEN,15,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-09,水電工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate；封閉前Hold Point,WI-MEP,CONTRACT_DRIVEN,17,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-10,環境控制檢核表（補充）,S6／C1 工程前置作業,G-C1及各契約期別Gate,WI-ENV-CONTROL,RECURRING,14,支援施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-11,監視保全系統檢核表（補充）,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-SECURITY,CONTRACT_DRIVEN,21,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-12,空調工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate；封閉前Hold Point,WI-HVAC,CONTRACT_DRIVEN,23,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-13,泥作工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-MASONRY,CONTRACT_DRIVEN,17,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-14,防水工程檢核表（補充）,S7／C2～S9／C4 契約所屬施工期,契約期別Gate；防水Hold Point,WI-WATERPROOF,CONTRACT_DRIVEN,17,所屬施工期付款資格；重大缺失未關閉不得通過,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-15,木作工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate；封板前Hold Point,WI-CARPENTRY,CONTRACT_DRIVEN,19,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-16,金屬工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-METAL,CONTRACT_DRIVEN,19,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-17,照明工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-LIGHTING,CONTRACT_DRIVEN,20,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-18,玻璃工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-GLASS,CONTRACT_DRIVEN,18,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-19,裝飾工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-DECORATION,CONTRACT_DRIVEN,18,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-20,油漆工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-PAINT,CONTRACT_DRIVEN,18,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-21,石材工程檢核表,S7／C2～S9／C4 契約所屬施工期,契約期別Gate,WI-STONE,CONTRACT_DRIVEN,18,所屬施工期付款資格,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-22,清潔工程檢核表,S9／C4 第三期工程施工,G-C4,WI-CLEANING,FIXED_WITH_CONTRACT,16,第三期／尾款付款資格（依契約）,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-23,完工交付檢核表（交屋流程：驗收、鑰匙、保固文件）,S9／C4 第三期工程施工,G-C4｜G-C5-OPEN,WI-HANDOVER,FIXED,15,第三期／尾款資格及C5啟動；不等於自動付款,SOURCE_FOUND,PENDING,R6_1_RC
+iSAFE-DGM-24,裝修關懷檢核表（售後追蹤：回訪、保養、客戶關係）,S10／C5 保固修繕及售後服務,G-C5,WI-WARRANTY,FIXED_RECURRING,18,保留款釋放或結案資格（適用時）,SOURCE_FOUND,PENDING,R6_1_RC

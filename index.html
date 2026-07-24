@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>iSAFE 2.0 | 產業數位治理工作台</title>
-    <link rel="stylesheet" href="styles.css?v=20260723-parity1" />
+    <link rel="stylesheet" href="styles.css?v=20260723-r61-registry1" />
   </head>
   <body>
     <div class="app-shell">
@@ -31,8 +31,8 @@
             <span>監管專案</span>
           </button>
           <button class="nav-item" data-view="r5" type="button">
-            <span class="nav-icon" aria-hidden="true">R6</span>
-            <span>R6／R5.2 契約</span>
+            <span class="nav-icon" aria-hidden="true">6.1</span>
+            <span>R6.1／R5.2 契約</span>
           </button>
           <button class="nav-item" data-view="passport" type="button">
             <span class="nav-icon" aria-hidden="true">▣</span>
@@ -40,7 +40,7 @@
           </button>
           <button class="nav-item" data-view="checklist" type="button">
             <span class="nav-icon" aria-hidden="true">▦</span>
-            <span>DGM Registry</span>
+            <span>治理 Registry</span>
           </button>
           <button class="nav-item" data-view="risk" type="button">
             <span class="nav-icon" aria-hidden="true">◎</span>
@@ -272,10 +272,10 @@
             <article class="surface span-12 r5-contract-card">
               <div class="section-head">
                 <div>
-                  <p class="section-kicker">TIGI R5.2 Alignment</p>
-                  <h2>R5.2 狀態機契約與治理邊界</h2>
+                  <p class="section-kicker">TIGI R6.1 Governance Alignment</p>
+                  <h2>R6.1 治理母本與 R5.2 執行邊界</h2>
                 </div>
-                <span class="status-pill good">20260722_R5_2</span>
+                <span class="status-pill warning">R6.1 RC</span>
               </div>
               <div class="r5-inline-grid" id="projectR5Summary"></div>
             </article>
@@ -322,59 +322,62 @@
               <div class="section-head">
                 <div>
                   <p class="section-kicker">iSAFE-DGM Registry Status</p>
-                  <h2 id="checklist-title">案件檢核已上線，24 項 DGM 待權威來源</h2>
+                  <h2 id="checklist-title">R6.1 Governance Registry</h2>
                 </div>
-                <span class="status-pill warning">SOURCE_REQUIRED 24/24</span>
+                <span class="status-pill warning">435 PENDING APPROVAL</span>
               </div>
               <div class="checklist-summary">
                 <div>
-                  <strong>2025 PDF 表單</strong>
-                  <span>31 頁、20 張現場可填寫檢核表，含勾選、異常註記、補充說明、規格與設備欄位。</span>
+                  <strong>TIGI-GS 30/30</strong>
+                  <span>GS-01～30 已完成權威復原並納入 R6.1 RC。</span>
                 </div>
                 <div>
-                  <strong>iSAFE-DGM-01～24</strong>
-                  <span>目前僅保留穩定 ID 範圍；權威名稱、正文、Owner、版本與 checksum 尚未取得。</span>
+                  <strong>iSAFE-DGM 24/24</strong>
+                  <span>來源已取得；治理核准 0/24，正式發布整合 0/24。</span>
                 </div>
                 <div>
-                  <strong>可執行基線</strong>
-                  <span>82 項 TWCID 舊站檢核已可回填案件、Evidence、Gate 與 Audit；不得等同 24 份正式 DGM。</span>
+                  <strong>DGI 411/411</strong>
+                  <span>來源完整；保留 legacy alias，尚待 ID 遷移與治理核准。</span>
+                </div>
+                <div>
+                  <strong>Release Candidate</strong>
+                  <span>435 筆 Registry 尚待治理核准，不得標示 Final Official。</span>
                 </div>
               </div>
             </article>
 
-            <article class="surface span-7">
-              <p class="section-kicker">Field Model</p>
-              <h2>每張手冊新增共同欄位</h2>
-              <div class="field-matrix">
-                <div><strong>檢核狀態</strong><span>未檢核、符合、異常、不適用、待補件</span></div>
-                <div><strong>證據上傳</strong><span>照片、PDF、報價單、材質表、設備規格、驗收紀錄</span></div>
-                <div><strong>異常管理</strong><span>異常註記、補充說明、修正期限、責任人、複查結果</span></div>
-                <div><strong>Gate 權限</strong><span>必填、條件必填、可選填、未完成禁止進入下一階段</span></div>
-                <div><strong>Pilot 風險提示</strong><span>僅供本地驗證；正式分數須保留規則版本、來源、人工確認與授權核定</span></div>
-                <div><strong>PGP 履歷</strong><span>案件編號、階段、日期、簽核者、版本、不可回溯紀錄</span></div>
+            <article class="surface span-12 registry-surface">
+              <div class="section-head registry-head">
+                <div>
+                  <p class="section-kicker">Registry Explorer</p>
+                  <h2>治理登錄資料</h2>
+                  <p id="registryDescription">24 份數位治理手冊來源已取得，尚待治理核准與正式發布整合。</p>
+                </div>
+                <span class="status-pill" id="registryResultCount">0/0</span>
               </div>
-            </article>
-
-            <article class="surface span-5">
-              <p class="section-kicker">Priority</p>
-              <h2>優先導入項目</h2>
-              <ol class="priority-list">
-                <li><strong>現場勘查</strong><span>管委會、保證金、公共區防護、屋況與環境風險。</span></li>
-                <li><strong>需求溝通</strong><span>家庭成員、生活習慣、安全需求、預算建議值。</span></li>
-                <li><strong>材質確認</strong><span>品牌、型號、規格、數量、位置與替代品確認。</span></li>
-                <li><strong>工程前置</strong><span>社區報備、施工公告、圖面與材質表上傳狀態。</span></li>
-                <li><strong>完工交付</strong><span>缺失紀錄、操作示範、保固書、交屋款簽認。</span></li>
-              </ol>
+              <div class="registry-toolbar">
+                <div class="registry-tabs" role="tablist" aria-label="治理 Registry">
+                  <button class="active" data-registry="dgm" type="button">DGM 24</button>
+                  <button data-registry="dgi" type="button">DGI 411</button>
+                  <button data-registry="gs" type="button">GS 30</button>
+                  <button data-registry="namespaces" type="button">命名空間 9</button>
+                </div>
+                <label class="registry-search">
+                  <span>搜尋 Registry</span>
+                  <input id="registrySearch" type="search" placeholder="輸入 ID、名稱、步驟或狀態" />
+                </label>
+              </div>
+              <div class="registry-table" id="governanceRegistryTable" aria-live="polite"></div>
             </article>
 
             <article class="surface span-12">
-              <p class="section-kicker">Manual Upgrade Map</p>
-              <h2>從閱讀型手冊升級為治理型表單</h2>
+              <p class="section-kicker">Release Boundary</p>
+              <h2>R6.1 發布與執行邊界</h2>
               <div class="upgrade-map">
-                <div><strong>手冊說明</strong><span>目的、適用時機、應注意事項、容易出錯、預防措施。</span></div>
-                <div><strong>現場檢核</strong><span>2025 表單的勾選欄、異常註記、補充說明、設備規格與施工紀錄。</span></div>
-                <div><strong>系統治理</strong><span>Gate 驗證、PGP 證據鏈、Pilot 風險提示與後台稽核履歷。</span></div>
-                <div><strong>發布邊界</strong><span>取得並核准 24 項權威來源前，只能標示 Registry 待補，不建立推測正文。</span></div>
+                <div><strong>文件母本</strong><span>R6.1 Governance Integration RC 是治理語意母本。</span></div>
+                <div><strong>執行契約</strong><span>iSAFE 十階段仍以 R5.2 State Machine Contract 為準。</span></div>
+                <div><strong>案件檢核</strong><span>82 項 Legacy Parity 已可執行，但不等同 24 份 DGM 已獲治理核准。</span></div>
+                <div><strong>正式發布</strong><span>DGM/DGI 核准、DGI ID 遷移與參照完整性 QA 完成前維持 RC。</span></div>
               </div>
             </article>
           </div>
@@ -563,19 +566,21 @@
               <div class="section-head">
                 <div>
                   <p class="section-kicker">TIGI Official Edition</p>
-                  <h2 id="r5-title">TIGI R6 文件基線與 iSAFE R5.2 執行契約</h2>
+                  <h2 id="r5-title">TIGI R6.1 治理母本與 iSAFE R5.2 執行契約</h2>
                 </div>
-                <span class="status-pill good">Accepted ADR</span>
+                <span class="status-pill warning">Release Candidate</span>
               </div>
               <div class="r5-hero">
                 <div>
                   <span class="r5-label">Document Baseline</span>
-                  <strong>TIGI R6 Independent Release Candidate</strong>
-                  <p>R6 是文件母本；本地網站仍以 R5.2 狀態機作為十階段執行依據，並以 Legacy Parity 契約承載舊站監管項目。</p>
+                  <strong>TIGI R6.1 Governance Integration Release Candidate</strong>
+                  <p>R6.1 是治理語意與 Registry 母本；本地網站仍以 R5.2 狀態機作為十階段執行依據，並以 Legacy Parity 契約承載舊站監管項目。</p>
                 </div>
                 <div class="r5-contract-id">
                   <span>Document Master</span>
-                  <strong>20260723_R6_Independent_RC</strong>
+                  <strong>20260723_R6_1_Governance_Integration_RC</strong>
+                  <span>Release ID</span>
+                  <strong>TIGI-GOVERNANCE-20260723-R6.1-RC</strong>
                   <span>State Contract</span>
                   <strong>20260722_R5_2</strong>
                   <span>Legacy Parity</span>
@@ -598,7 +603,7 @@
 
             <article class="surface span-7">
               <p class="section-kicker">Canonical IDs</p>
-              <h2>R5.2 欄位契約</h2>
+              <h2>R6.1 Canonical IDs</h2>
               <div class="canonical-list" id="r5CanonicalIds"></div>
             </article>
 
@@ -627,6 +632,6 @@
         </section>
       </main>
     </div>
-    <script src="app.js?v=20260723-parity1"></script>
+    <script src="app.js?v=20260723-r61-registry1"></script>
   </body>
 </html>

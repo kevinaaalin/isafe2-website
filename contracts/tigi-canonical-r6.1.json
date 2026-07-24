@@ -1,0 +1,290 @@
+{
+  "contract_version": "20260723_R6_1_Governance_Integration_RC",
+  "status": "governance_registry_integration_release_candidate",
+  "release_id": "TIGI-GOVERNANCE-20260723-R6.1-RC",
+  "edition_name": "Independent Consolidated Decision and Specification Edition",
+  "precedence": [
+    "R6.1_CANONICAL_CONTRACT",
+    "R6.1_APPROVED_REGISTRY_WHEN_EFFECTIVE",
+    "R6.1_GOVERNANCE_MASTER",
+    "R6_INDEPENDENT_MASTER",
+    "R5.2_LEGACY_PARITY_IMPLEMENTATION_RECORD",
+    "R5.2.1_GS30_RECOVERY_RECORD",
+    "2026-07-13_VERSION_FREEZE_ORIGINAL_OFFICIAL_EDITION",
+    "R5.2_STATE_MACHINE_ADR",
+    "R5.2_MASTER",
+    "R5.2_STATE_MACHINE_CONTRACT",
+    "R5.1_ACCEPTED_ADR",
+    "R5.1_MASTER",
+    "R5.1_ANNEXES",
+    "R5_ACCEPTED_ADR",
+    "R5_MASTER",
+    "R4.1",
+    "R3",
+    "R2"
+  ],
+  "identifiers": {
+    "tenant_id": "SaaS tenant",
+    "organization_id": "Organization inside a tenant",
+    "user_id": "TIGI platform user resource",
+    "journey_id": "Cross-entry customer journey",
+    "stylematch_project_id": "StyleMatch AI demand and proposal workspace",
+    "match_case_id": "TWCID matching or tender case",
+    "project_id": "Canonical cross-product TIGI project",
+    "isafe_case_id": "iSAFE governance case",
+    "deos_project_id": "DEOS operating project",
+    "handover_id": "Cross-product handover transaction",
+    "ai_task_id": "AI task",
+    "trace_id": "End-to-end technical trace",
+    "correlation_id": "Business-flow event correlation"
+  },
+  "deprecated_mappings": {
+    "org_id": "organization_id",
+    "subject_id_business_field": "user_id",
+    "project_id_as_stylematch_workspace": "stylematch_project_id",
+    "case_id_as_isafe_case": "isafe_case_id",
+    "source_project_id": "stylematch_project_id"
+  },
+  "api": {
+    "public_base_path": "/api/v1",
+    "internal_service_base_path_allowed": "/v1",
+    "authentication": "OIDC/OAuth 2.1",
+    "user_flow": "Authorization Code with PKCE",
+    "server_flow": "Scoped server credentials",
+    "required_request_context": [
+      "tenant_id",
+      "organization_id",
+      "purpose",
+      "consent_ref",
+      "trace_id",
+      "idempotency_key"
+    ],
+    "required_error_fields": [
+      "code",
+      "message",
+      "trace_id",
+      "retryable",
+      "details"
+    ]
+  },
+  "events": {
+    "envelope": [
+      "event_id",
+      "event_type",
+      "event_version",
+      "occurred_at",
+      "producer",
+      "tenant_id",
+      "organization_id",
+      "trace_id",
+      "correlation_id",
+      "causation_id",
+      "idempotency_key",
+      "data"
+    ],
+    "canonical_names": [
+      "JourneyCreated",
+      "DemandProfileCompleted",
+      "StyleMatchProjectCreated",
+      "MatchRequested",
+      "ProviderSelected",
+      "ContractBaselineApproved",
+      "ProjectHandoverApproved",
+      "ProjectCreated",
+      "ISAFECaseCreated",
+      "GovernanceInitiated",
+      "EvidenceRegistered",
+      "GateEvaluated",
+      "PaymentEligibilityChanged",
+      "AcceptanceCompleted",
+      "DEOSProjectActivated",
+      "ProjectClosed"
+    ],
+    "delivery": {
+      "publisher": "transactional_outbox",
+      "consumer": "idempotent",
+      "webhook_controls": [
+        "signature",
+        "timestamp_window",
+        "retry",
+        "exponential_backoff",
+        "deduplication",
+        "dead_letter_queue"
+      ]
+    }
+  },
+  "ai_forbidden_writes": [
+    "MatchResult",
+    "ContractBaselineApproval",
+    "GateDecision",
+    "RiskScore",
+    "EvidenceAcceptance",
+    "PaymentEligibility",
+    "PaymentApproval",
+    "DEOSTransaction"
+  ],
+  "billing_boundary": {
+    "platform_core_owns": [
+      "Product",
+      "Plan",
+      "Feature",
+      "Entitlement",
+      "Subscription",
+      "UsageEvent",
+      "InvoiceReference"
+    ],
+    "payment_eligibility_is_invoice": false,
+    "payment_eligibility_is_payment_approval": false,
+    "payment_eligibility_triggers_automatic_payment": false
+  },
+  "roadmap": {
+    "delivery_program_months": 12,
+    "product_horizon_months": 36,
+    "phase_labels_mean_product_maturity": true
+  },
+  "handover": {
+    "required_fields": [
+      "schema_version",
+      "handover_id",
+      "idempotency_key",
+      "created_at",
+      "tenant_id",
+      "organization_id",
+      "journey_id",
+      "stylematch_project_id",
+      "match_case_id",
+      "project_id",
+      "requirement_profile_ref",
+      "style_profile_ref",
+      "space_profile_ref",
+      "budget_profile_ref",
+      "proposal_refs",
+      "attachment_refs",
+      "source_versions",
+      "contract_baseline_ref",
+      "scope_summary",
+      "budget_summary",
+      "schedule_summary",
+      "consent_ref",
+      "consent_scope",
+      "consent_at",
+      "retention_policy",
+      "trace_id",
+      "correlation_id",
+      "source_system"
+    ]
+  },
+  "ai_trace": {
+    "high_impact_required_fields": [
+      "agent_id",
+      "model_provider",
+      "model_version",
+      "prompt_version",
+      "knowledge_version",
+      "input_hash",
+      "output_hash",
+      "citations",
+      "warnings",
+      "confidence",
+      "token_compute_usage",
+      "human_confirmation",
+      "retention_policy"
+    ]
+  },
+  "saas_module_flags": [
+    "stylematch_ai_enabled",
+    "isafe_enabled",
+    "twcid_marketplace_enabled",
+    "api_access_enabled",
+    "white_label_enabled",
+    "custom_domain_enabled"
+  ],
+  "registry_completeness": {
+    "TIGI_GS": {
+      "expected": 30,
+      "source_found": 30,
+      "governance_approved": 30,
+      "release_integrated": 30
+    },
+    "ISAFE_DGM": {
+      "expected": 24,
+      "source_found": 24,
+      "governance_approved": 0,
+      "release_integrated": 0,
+      "status": "SOURCE_FOUND_PENDING_GOVERNANCE_APPROVAL"
+    },
+    "DGI": {
+      "expected": 411,
+      "source_found": 411,
+      "governance_approved": 0,
+      "release_integrated": 0,
+      "status": "SOURCE_FOUND_PENDING_GOVERNANCE_APPROVAL"
+    },
+    "source_missing": 0,
+    "pending_governance_approval": 435,
+    "blocks_final_official_status": true
+  },
+  "isafe_state_machine": {
+    "contract_file": "isafe-state-machine-r5.2.json",
+    "stage_count": 10,
+    "pre_governance_states": [
+      "INTAKE_pending"
+    ],
+    "stage_keys": [
+      "D1_design_preparation",
+      "D2_floor_plan_design",
+      "D3_basic_design_finalization",
+      "D4_elevation_design_finalization",
+      "D5_construction_detail_agreements",
+      "C1_construction_preparation",
+      "C2_phase_one_construction",
+      "C3_phase_two_construction",
+      "C4_phase_three_construction",
+      "C5_warranty_aftercare"
+    ],
+    "terminal_states": [
+      "CLOSED"
+    ],
+    "automatic_payment_on_gate": false
+  },
+  "integration_note": "R5.2 source contract omitted R5.1 handover, ai_trace, saas_module_flags and registry_completeness; this integrated contract preserves those accepted R5.1 sections and adds the R5.2 state machine.",
+  "gs30_recovery": {
+    "source_ref": "2026-07-13 Version Freeze Original Official Edition",
+    "source_url": "https://chatgpt.com/share/6a547586-cf94-83e8-a318-0f5cac1f42c2",
+    "recovered_count": 24,
+    "preserved_authoritative_count": 6,
+    "verified_total": 30,
+    "remaining_registry_source_required": 435
+  },
+  "local_implementation_baseline": {
+    "parity_contract": "20260723_R5_2_PARITY_1",
+    "state_contract": "20260722_R5_2",
+    "acceptance_case": "IS-2026-0003",
+    "formal_stage_count": 10,
+    "checklist_item_count": 82,
+    "payment_milestone_count": 8,
+    "api_test": {
+      "passed": 1,
+      "failed": 0
+    },
+    "desktop_width": 1440,
+    "mobile_width": 390,
+    "horizontal_overflow": 0,
+    "console_errors_or_warnings": 0,
+    "github_status": "local_changes_not_committed_pushed_or_deployed",
+    "production_claim_allowed": false
+  },
+  "dgi_identifier_migration": {
+    "legacy_alias_pattern": "DGI-001..DGI-411",
+    "source_pattern": "DGI-{manual_no}-{A|E|P}{sequence}",
+    "mapping_file": "DGI_Legacy_to_Hierarchical_Migration_R6_1.csv",
+    "one_to_one_rows": 411,
+    "delete_legacy_alias_allowed": false
+  },
+  "governance_master": {
+    "document": "TIGI_Governance_Master_24_Chapters_Independent_Edition_20260723_R6_1_RC.md",
+    "chapter_count": 24,
+    "authority_role": "governance_semantic_canon",
+    "does_not_override_canonical_contract_or_approved_registry": true
+  }
+}

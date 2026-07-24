@@ -1,10 +1,10 @@
 const views = {
-  r5: "TIGI R6 文件基線與 iSAFE R5.2 執行契約",
+  r5: "TIGI R6.1 治理母本與 iSAFE R5.2 執行契約",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   projects: "iSAFE 監管專案工作台",
   passport: "案件治理護照與證據鏈",
-  checklist: "iSAFE-DGM Registry 與案件檢核",
+  checklist: "R6.1 Governance Registry",
   risk: "Pilot 風險指標與人工覆核邊界",
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",
@@ -16,10 +16,11 @@ const views = {
 const r5Contract = {
   version: "20260722_R5_2",
   acceptedAdr: "R5.2 State Machine ADR",
-  documentVersion: "20260723_R6_Independent_RC",
-  documentStatus: "Independent Release Candidate",
+  documentVersion: "20260723_R6_1_Governance_Integration_RC",
+  releaseId: "TIGI-GOVERNANCE-20260723-R6.1-RC",
+  documentStatus: "Governance Integration Release Candidate",
   parityVersion: "20260723_R5_2_PARITY_1",
-  baseline: "TIGI R6 Independent Release Candidate",
+  baseline: "TIGI R6.1 Governance Integration Release Candidate",
   contractFile: "isafe-state-machine-r5.2.json",
   canonicalIdCount: 13,
   apiBase: "/api/v1",
@@ -79,6 +80,62 @@ const r5CanonicalIds = [
   "trace_id",
   "correlation_id",
 ];
+
+const gsRegistry = [
+  ["TIGI-GS-01", "案件識別標準", "確保每個案件具有唯一 Project ID、流程及版本"],
+  ["TIGI-GS-02", "角色責任標準", "定義業主、設計師、施工單位、審核者的責任與權限"],
+  ["TIGI-GS-03", "節點進入標準", "定義進入下一步驟前必須完成的前置條件"],
+  ["TIGI-GS-04", "Gate驗證標準", "規定 Gate 如何檢查文件、簽核、照片、檢核及付款條件"],
+  ["TIGI-GS-05", "狀態轉換標準", "防止非法跳關，保存操作者與時間"],
+  ["TIGI-GS-06", "例外處理標準", "管理 Fallback、Override、暫停與例外核准"],
+  ["TIGI-GS-07", "案件資料標準", "統一案件必要欄位、代碼與資料型別"],
+  ["TIGI-GS-08", "參與者與權限標準", "管理角色、授權範圍及有效期間"],
+  ["TIGI-GS-09", "Artifact中繼資料標準", "規範圖說、照片、文件的來源、類型及版本"],
+  ["TIGI-GS-10", "版本與變更標準", "新資料不得覆蓋舊版本，必須保留變更原因"],
+  ["TIGI-GS-11", "治理事件標準", "保存誰、何時、對什麼資料、做了什麼操作及結果"],
+  ["TIGI-GS-12", "交換與互通標準", "統一 API Schema、代碼、錯誤碼及交換版本"],
+  ["TIGI-GS-13", "證據識別標準", "每一 Evidence 具有唯一 ID 並關聯案件、步驟及 Gate"],
+  ["TIGI-GS-14", "完整性標準", "保存 SHA-256、檔案大小及完整性驗證資料"],
+  ["TIGI-GS-15", "採集中繼資料標準", "保存時間、來源、裝置及可取得的 EXIF／GPS"],
+  ["TIGI-GS-16", "證據鏈標準", "追蹤上傳、引用、驗證、簽核及封存歷程"],
+  ["TIGI-GS-17", "簽核與見證標準", "保存簽核人、角色、意圖、時間及簽核版本"],
+  ["TIGI-GS-18", "保存與封存標準", "規定保存期限、封存、Legal Hold 及刪除程序"],
+  ["TIGI-GS-19", "Checklist標準", "規定檢核項目、結果、證據、檢查人及版本"],
+  ["TIGI-GS-20", "不符合事項標準", "記錄缺失類型、嚴重度、責任人及改善期限"],
+  ["TIGI-GS-21", "改善閉環標準", "管理改善、複驗及缺失關閉條件"],
+  ["TIGI-GS-22", "風險評分標準", "規範 RiskScore 規則、權重、分數與版本"],
+  ["TIGI-GS-23", "驗收與交付標準", "規範驗收範圍、缺失、簽認及交付清單"],
+  ["TIGI-GS-24", "保固與結案標準", "管理保固期間、維修責任、PGP 及案件封存"],
+  ["TIGI-GS-25", "合約基線治理標準", "確認工程範圍、圖說、估價、工期、付款及變更基準一致"],
+  ["TIGI-GS-26", "工項與施工期別治理標準", "將個案工項配置至各期工程施工及責任角色"],
+  ["TIGI-GS-27", "付款節點與資格治理標準", "規範 Gate、驗收、追加減、保留款及付款資格的關係"],
+  ["TIGI-GS-28", "數位治理手冊綁定標準", "規範 24 張手冊如何綁定步驟、工項、Evidence 及 Gate Rule"],
+  ["TIGI-GS-29", "AI輔助治理標準", "規範 AI 版本、輸入輸出、人工確認及專業判斷邊界"],
+  ["TIGI-GS-30", "消費者旅程與資料回饋標準", "規範跨產品資料串聯與使用限制"],
+].map(([registry_id, name, purpose]) => ({
+  registry_id,
+  name,
+  purpose,
+  source_status: "AUTHORITATIVE",
+  governance_approval_status: "APPROVED",
+  release_integration_status: "R6_1_RC",
+}));
+
+const namespaceRegistry = [
+  ["TIGI-GS", "治理標準"],
+  ["iSAFE-DGM", "數位治理手冊"],
+  ["DGI", "治理題項"],
+  ["WI", "工項"],
+  ["G", "Gate 規則"],
+  ["PM", "付款里程碑"],
+  ["EVD", "Evidence 類型"],
+  ["NCR", "不符合事項"],
+  ["CAPA", "改善與預防措施"],
+].map(([registry_id, scope]) => ({
+  registry_id,
+  scope,
+  status: "R6_1_NAMESPACE_DEFINED",
+}));
 
 let gates = [
   { id: "D1", key: "D1_design_preparation", name: "前置作業", text: "確認設計需求、費用、付款方式與設計契約。" },
@@ -216,6 +273,15 @@ let activeLegacyTab = "checklist";
 let legacyStageFilter = null;
 let legacyFallbackContract = null;
 let legacyReadOnly = false;
+let r61CanonicalContract = null;
+let governanceRegistry = {
+  dgm: [],
+  dgi: [],
+  gs: gsRegistry,
+  namespaces: namespaceRegistry,
+};
+let activeRegistry = "dgm";
+let registrySearch = "";
 
 projectCases = projectCases.map((item, index) => ({
   ...item,
@@ -264,6 +330,67 @@ function setText(selector, text) {
 
 function getActiveCase() {
   return projectCases.find((item) => item.id === activeCaseId) || projectCases[0];
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let quoted = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    const next = text[index + 1];
+    if (character === '"' && quoted && next === '"') {
+      field += '"';
+      index += 1;
+    } else if (character === '"') {
+      quoted = !quoted;
+    } else if (character === "," && !quoted) {
+      row.push(field);
+      field = "";
+    } else if ((character === "\n" || character === "\r") && !quoted) {
+      if (character === "\r" && next === "\n") index += 1;
+      row.push(field);
+      if (row.some((value) => value.length)) rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += character;
+    }
+  }
+
+  row.push(field);
+  if (row.some((value) => value.length)) rows.push(row);
+  const [headers = [], ...records] = rows;
+  return records.map((values) => Object.fromEntries(headers.map((header, index) => [header.replace(/^\uFEFF/, ""), values[index] || ""])));
+}
+
+async function loadR61GovernanceRegistry() {
+  try {
+    const [contractResponse, dgmResponse, dgiResponse] = await Promise.all([
+      fetch("./contracts/tigi-canonical-r6.1.json"),
+      fetch("./contracts/isafe-dgm-registry-r6.1.csv"),
+      fetch("./contracts/dgi-migration-r6.1.csv"),
+    ]);
+    if (![contractResponse, dgmResponse, dgiResponse].every((response) => response.ok)) {
+      throw new Error("One or more R6.1 registry assets could not be loaded.");
+    }
+    r61CanonicalContract = await contractResponse.json();
+    const dgm = parseCsv(await dgmResponse.text());
+    const dgi = parseCsv(await dgiResponse.text());
+    const expected = r61CanonicalContract.registry_completeness;
+    if (dgm.length !== expected.ISAFE_DGM.source_found || dgi.length !== expected.DGI.source_found) {
+      throw new Error(`R6.1 Registry count mismatch: DGM ${dgm.length}, DGI ${dgi.length}.`);
+    }
+    governanceRegistry = {
+      ...governanceRegistry,
+      dgm,
+      dgi,
+    };
+  } catch (error) {
+    console.error("R6.1 Governance Registry could not be loaded.", error);
+  }
 }
 
 async function loadStateMachine() {
@@ -444,6 +571,7 @@ function setView(viewId) {
     loadLegacyWorkspace();
   }
   if (nextView === "r5") renderR5Baseline();
+  if (nextView === "checklist") renderGovernanceRegistry();
 }
 
 function renderGateMachine() {
@@ -622,7 +750,7 @@ function renderR5Baseline() {
   const canonicalIds = qs("#r5CanonicalIds");
   if (canonicalIds) {
     canonicalIds.innerHTML = [
-      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>canonical IDs defined by ${r5Contract.documentVersion};未全部落地</span></div>`,
+      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>R6.1 canonical IDs；地端 API 已落地 11/13，match_case_id 與 deos_project_id 待補</span></div>`,
       ...r5CanonicalIds.map((id) => `<code>${id}</code>`),
     ].join("");
   }
@@ -631,11 +759,108 @@ function renderR5Baseline() {
   if (boundary) {
     boundary.innerHTML = `
       <div><strong>${r5Contract.acceptedAdr}</strong><span>R5.2 State Machine Contract is the implementation authority for iSAFE stages.</span></div>
-      <div><strong>${r5Contract.documentVersion}</strong><span>R6 是文件母本 RC；不取代 R5.2 十階段執行契約。</span></div>
+      <div><strong>${r5Contract.documentVersion}</strong><span>R6.1 是治理整合母本 RC；不取代 R5.2 十階段執行契約。</span></div>
       <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
       <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
     `;
   }
+}
+
+const registryConfigurations = {
+  dgm: {
+    description: "24 份數位治理手冊來源已取得，尚待治理核准與正式發布整合。",
+    columns: [
+      ["manual_code", "DGM ID"],
+      ["manual_title", "手冊名稱"],
+      ["primary_step", "主要步驟"],
+      ["gate_ids", "Gate"],
+      ["work_item_code", "工項"],
+      ["source_item_count", "題數"],
+      ["source_status", "來源"],
+      ["governance_approval_status", "核准"],
+    ],
+  },
+  dgi: {
+    description: "保留 DGI-001～411 legacy alias，並一對一對應階層式來源題碼。",
+    columns: [
+      ["legacy_id", "Legacy ID"],
+      ["source_item_code", "階層式題碼"],
+      ["manual_code", "DGM"],
+      ["item_type", "分類"],
+      ["source_number", "來源序號"],
+      ["source_status", "來源"],
+      ["governance_approval_status", "核准"],
+    ],
+  },
+  gs: {
+    description: "GS-01～30 已完成權威復原並納入 R6.1 RC。",
+    columns: [
+      ["registry_id", "GS ID"],
+      ["name", "正式名稱"],
+      ["purpose", "治理用途"],
+      ["source_status", "來源"],
+      ["governance_approval_status", "核准"],
+    ],
+  },
+  namespaces: {
+    description: "跨文件與系統統一使用九類 Registry 命名空間。",
+    columns: [
+      ["registry_id", "命名空間"],
+      ["scope", "治理範圍"],
+      ["status", "狀態"],
+    ],
+  },
+};
+
+function renderGovernanceRegistry() {
+  const target = qs("#governanceRegistryTable");
+  if (!target) return;
+
+  const configuration = registryConfigurations[activeRegistry];
+  const records = governanceRegistry[activeRegistry] || [];
+  const query = registrySearch.trim().toLocaleLowerCase("zh-Hant");
+  const filtered = query
+    ? records.filter((record) => Object.values(record).some((value) => String(value).toLocaleLowerCase("zh-Hant").includes(query)))
+    : records;
+
+  qsa("[data-registry]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.registry === activeRegistry);
+    button.onclick = () => {
+      activeRegistry = button.dataset.registry;
+      renderGovernanceRegistry();
+    };
+  });
+
+  const search = qs("#registrySearch");
+  if (search) {
+    search.value = registrySearch;
+    search.oninput = (event) => {
+      registrySearch = event.target.value;
+      renderGovernanceRegistry();
+      qs("#registrySearch")?.focus();
+    };
+  }
+
+  setText("#registryResultCount", `${filtered.length}/${records.length}`);
+  setText("#registryDescription", configuration.description);
+
+  if (!records.length) {
+    target.innerHTML = `<div class="registry-empty">R6.1 Registry 資料載入中，或目前無法讀取資料檔。</div>`;
+    return;
+  }
+
+  target.innerHTML = `
+    <table>
+      <thead>
+        <tr>${configuration.columns.map(([, label]) => `<th scope="col">${label}</th>`).join("")}</tr>
+      </thead>
+      <tbody>
+        ${filtered.map((record) => `
+          <tr>${configuration.columns.map(([key]) => `<td>${escapeHtml(record[key] || "-")}</td>`).join("")}</tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
 }
 
 function renderProjectR5Summary(project) {
@@ -652,6 +877,7 @@ function renderProjectR5Summary(project) {
 
   target.innerHTML = [
     ["Document Master", r5Contract.documentVersion],
+    ["Release ID", r5Contract.releaseId],
     ["State Contract", project.schemaVersion || r5Contract.version],
     ["Legacy Parity", legacyWorkspace?.contract_version || r5Contract.parityVersion],
     ["Accepted ADR", r5Contract.acceptedAdr],
@@ -1237,7 +1463,10 @@ async function init() {
   const printBtn = qs("#printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
 
-  await loadLegacyFallbackContract();
+  await Promise.all([
+    loadLegacyFallbackContract(),
+    loadR61GovernanceRegistry(),
+  ]);
   await loadStateMachine();
   renderGateMachine();
   renderGateRules();
@@ -1246,6 +1475,7 @@ async function init() {
   renderRiskBars();
   renderLevels();
   renderR5Baseline();
+  renderGovernanceRegistry();
   await loadProjectCases();
   renderProjectWorkspace();
   initFromUrl();
