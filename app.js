@@ -26,14 +26,15 @@ const r5Contract = {
   apiBase: "/api/v1",
 };
 
-const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || "http://127.0.0.1:4180";
 const hasConfiguredApi = Boolean(window.ISAFE_CONFIG?.apiOrigin);
 const isLocalRuntime = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const localApiOverride = isLocalRuntime ? new URLSearchParams(window.location.search).get("apiOrigin") : null;
+const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || localApiOverride || "http://127.0.0.1:4180";
 const forceStaticPreview = new URLSearchParams(window.location.search).get("static") === "1";
 const apiEnabled = !forceStaticPreview && (hasConfiguredApi || isLocalRuntime);
 const browserTraceId = `web-${globalThis.crypto?.randomUUID?.() || Date.now()}`;
 
-function apiContextHeaders({ tenantId = "tenant_local_tigi", organizationId = "org_local_headquarter", purpose, idempotencyKey, authorize = false } = {}) {
+function apiContextHeaders({ tenantId = "tenant_local_tigi", organizationId = "org_local_headquarter", purpose, idempotencyKey, authorize = false, identity } = {}) {
   const headers = {
     "X-Tenant-Id": tenantId,
     "X-Organization-Id": organizationId,
@@ -41,6 +42,12 @@ function apiContextHeaders({ tenantId = "tenant_local_tigi", organizationId = "o
     "X-Consent-Ref": "consent_local_trial",
     "X-Trace-Id": browserTraceId,
   };
+  if (identity) {
+    headers["X-User-Id"] = identity.userId;
+    headers["X-Member-Tier"] = identity.memberTier;
+    headers["X-Case-Role"] = identity.caseRole;
+    if (identity.certifiedMemberType) headers["X-Certified-Member-Type"] = identity.certifiedMemberType;
+  }
   if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
   if (authorize) headers.Authorization = "Bearer local-dev-headquarter";
   return headers;
@@ -202,13 +209,23 @@ const roles = [
     title: "總部視圖",
     scope: "全區案件、代理商績效、跨區風險與完整 PGP",
     actions: ["指派代理商", "覆核 Gate", "查看全部 Evidence", "匯出 PGP"],
+    memberTier: "headquarter",
+    caseRole: "reviewer",
+    userId: "local-headquarter",
+    allowedViews: Object.keys(views),
+    capabilities: ["checklist_add", "baseline", "receipt", "evidence", "change_order", "message"],
   },
   {
-    id: "agency",
-    label: "代理商",
-    title: "代理商視圖",
+    id: "dealer",
+    label: "經銷／代理商",
+    title: "經銷／代理商視圖",
     scope: "轄下案件、設計師進度、待補文件與 RiskScore",
     actions: ["追蹤轄下案件", "催補資料", "初審 Gate", "查看代理商 KPI"],
+    memberTier: "dealer",
+    caseRole: "case_coordinator",
+    userId: "local-dealer",
+    allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel", "business"],
+    capabilities: ["checklist_add", "baseline", "receipt", "evidence", "change_order", "message"],
   },
   {
     id: "association",
@@ -216,20 +233,52 @@ const roles = [
     title: "公會視圖",
     scope: "爭議、評鑑、調處、PGP 與稽核 Evidence",
     actions: ["查看爭議紀錄", "建立調處意見", "審閱 PGP", "標記評鑑結果"],
+    memberTier: "association",
+    caseRole: "mediator",
+    userId: "local-association",
+    allowedViews: ["overview", "projects", "passport", "risk", "glevel", "association"],
+    capabilities: ["message"],
   },
   {
-    id: "designer",
-    label: "設計師",
-    title: "設計師視圖",
+    id: "certified_designer",
+    label: "認證設計師",
+    title: "認證設計師視圖",
     scope: "本人案件、交付物、文件上傳與 Gate 待辦",
     actions: ["上傳文件", "回覆待辦", "查看 Gate 狀態", "提交變更說明"],
+    memberTier: "certified_member",
+    certifiedMemberType: "designer",
+    caseRole: "case_designer",
+    userId: "local-certified-designer",
+    confirmationParty: "certified_member",
+    allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel"],
+    capabilities: ["checklist_confirm", "receipt", "evidence", "change_order", "message"],
   },
   {
-    id: "owner",
-    label: "業主",
-    title: "業主視圖",
+    id: "certified_vendor",
+    label: "認證工程商",
+    title: "認證工程商視圖",
+    scope: "本人案件、施工交付、現場證據與檢核待辦",
+    actions: ["上傳施工證據", "完成檢核", "查看 Gate 狀態", "提交工程變更"],
+    memberTier: "certified_member",
+    certifiedMemberType: "vendor",
+    caseRole: "case_vendor",
+    userId: "local-certified-vendor",
+    confirmationParty: "certified_member",
+    allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel"],
+    capabilities: ["checklist_confirm", "receipt", "evidence", "change_order", "message"],
+  },
+  {
+    id: "general_member",
+    label: "一般會員／業主",
+    title: "一般會員／業主視圖",
     scope: "本人專案、工程進度、確認事項與 PGP 摘要",
     actions: ["確認需求", "查看進度", "下載 PGP 摘要", "提出問題"],
+    memberTier: "general_member",
+    caseRole: "case_owner",
+    userId: "local-owner",
+    confirmationParty: "owner",
+    allowedViews: ["overview", "projects", "passport"],
+    capabilities: ["checklist_confirm", "evidence", "change_order", "message"],
   },
 ];
 
@@ -425,6 +474,7 @@ async function loadLegacyFallbackContract() {
 
 function createReadOnlyLegacyWorkspace(project) {
   if (!legacyFallbackContract) return null;
+  const currentStageIndex = gates.findIndex((gate) => gate.key === project.stage);
   const checklist = Object.entries(legacyFallbackContract.checklists).flatMap(([stage, labels]) =>
     labels.map((label, index) => ({
       checklist_item_id: `preview-${stage}-${index + 1}`,
@@ -437,6 +487,12 @@ function createReadOnlyLegacyWorkspace(project) {
       completed_by: null,
       completed_at: null,
       note: null,
+      aggregate_status: "pending",
+      stage_locked: currentStageIndex >= 0 && gates.findIndex((gate) => gate.key === stage) < currentStageIndex,
+      confirmations: {
+        certified_member: { status: "pending", version: 1 },
+        owner: { status: "pending", version: 1 },
+      },
     })),
   );
   const milestones = legacyFallbackContract.payment_milestones.map((item) => ({
@@ -492,7 +548,7 @@ async function loadProjectCases() {
   try {
     const previousActiveCaseId = activeCaseId;
     const response = await fetch(`${apiOrigin}/api/v1/isafe/cases`, {
-      headers: apiContextHeaders({ purpose: "isafe_governance_review" }),
+      headers: apiContextHeaders({ purpose: "isafe_governance_review", identity: getActiveRole() }),
     });
     if (!response.ok) throw new Error(`API ${response.status}`);
     const payload = await response.json();
@@ -533,7 +589,7 @@ async function loadProjectCases() {
         : ["case_master", "timeline", "audit_log"],
     }));
     const outboxResponse = await fetch(`${apiOrigin}/api/v1/outbox-events`, {
-      headers: apiContextHeaders({ purpose: "isafe_governance_review" }),
+      headers: apiContextHeaders({ purpose: "isafe_governance_review", identity: getActiveRole() }),
     });
     if (outboxResponse.ok) {
       const outboxPayload = await outboxResponse.json();
@@ -554,8 +610,24 @@ function getActiveRole() {
   return roles.find((item) => item.id === activeRole) || roles[0];
 }
 
+function canUse(capability) {
+  return getActiveRole().capabilities.includes(capability);
+}
+
+function updateNavigationAccess() {
+  const role = getActiveRole();
+  qsa(".nav-item").forEach((button) => {
+    const allowed = role.allowedViews.includes(button.dataset.view);
+    button.hidden = !allowed;
+    button.setAttribute("aria-hidden", String(!allowed));
+  });
+}
+
 function setView(viewId) {
-  const nextView = views[viewId] ? viewId : "overview";
+  const role = getActiveRole();
+  const requestedView = views[viewId] ? viewId : "overview";
+  const nextView = role.allowedViews.includes(requestedView) ? requestedView : role.allowedViews[0];
+  updateNavigationAccess();
 
   qsa(".nav-item").forEach((button) => {
     button.classList.toggle("active", button.dataset.view === nextView);
@@ -698,9 +770,14 @@ function renderRoleSwitcher() {
     .join("");
 
   qsa(".role-button", target).forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       activeRole = button.dataset.role;
+      const currentView = qs(".view.active")?.id || "overview";
+      setView(currentView);
+      legacyWorkspace = null;
+      legacyStageFilter = null;
       renderProjectWorkspace();
+      await loadLegacyWorkspace();
     });
   });
 }
@@ -905,6 +982,8 @@ function renderProjectWorkspace() {
   setText("#projectTitle", project.title);
   setText("#projectStatus", project.status);
   setText("#roleTitle", role.title);
+  const advanceButton = qs("#demoCycleBtn");
+  if (advanceButton) advanceButton.hidden = !["headquarter", "dealer"].includes(role.memberTier);
 
   renderCaseSelect();
   renderRoleSwitcher();
@@ -938,7 +1017,7 @@ function renderProjectWorkspace() {
   const panel = qs("#permissionPanel");
   if (panel) {
     panel.innerHTML = `
-      <div class="permission-notice">本地角色預覽。正式讀寫權限由 API 的 tenant context 與授權規則判定。</div>
+      <div class="permission-notice">本地身分模擬已連動 API 授權；會員層級與案件角色會共同限制頁面及寫入操作。</div>
       <div class="permission-scope">${role.scope}</div>
       <div class="permission-actions">
         ${role.actions.map((action) => `<span>${action}</span>`).join("")}
@@ -963,6 +1042,7 @@ const legacyTabs = [
 ];
 
 function legacyHeaders(project, idempotencyKey) {
+  const role = getActiveRole();
   return {
     "Content-Type": "application/json",
     ...apiContextHeaders({
@@ -971,6 +1051,7 @@ function legacyHeaders(project, idempotencyKey) {
       purpose: "isafe_legacy_functional_parity",
       idempotencyKey: idempotencyKey || `ui-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       authorize: true,
+      identity: role,
     }),
   };
 }
@@ -993,6 +1074,7 @@ async function loadLegacyWorkspace() {
         tenantId: project.tenantId,
         organizationId: project.organizationId,
         purpose: "isafe_legacy_functional_parity",
+        identity: getActiveRole(),
       }),
     });
     const payload = await response.json();
@@ -1034,16 +1116,38 @@ function renderLegacyWorkspace() {
   if (activeLegacyTab === "messages") panel.innerHTML = renderMessagePanel();
   if (legacyReadOnly) {
     panel.insertAdjacentHTML("afterbegin", `<div class="read-only-banner"><strong>GitHub Pages 靜態唯讀預覽</strong><span>完整寫入、檔案與稽核功能需連接受保護的 iSAFE API。</span></div>`);
-    qsa("form input, form textarea, form select, form button, .checklist-status", panel).forEach((control) => {
+    qsa("form input, form textarea, form select, form button, .checklist-confirmation", panel).forEach((control) => {
       control.disabled = true;
     });
   }
+  const formCapabilities = {
+    addChecklistForm: "checklist_add",
+    evidenceUploadForm: "evidence",
+    baselineForm: "baseline",
+    receiptForm: "receipt",
+    changeOrderForm: "change_order",
+    messageForm: "message",
+  };
+  Object.entries(formCapabilities).forEach(([formId, capability]) => {
+    const form = qs(`#${formId}`, panel);
+    if (form && !canUse(capability)) {
+      form.hidden = true;
+      qsa("input, textarea, select, button", form).forEach((control) => { control.disabled = true; });
+    }
+  });
   bindLegacyActions();
 }
 
 function renderChecklistPanel() {
   const items = legacyWorkspace.checklist.filter((item) => item.stage === legacyStageFilter);
-  const completed = items.filter((item) => item.status === "completed").length;
+  const completed = items.filter((item) => (item.aggregate_status || item.status) === "completed").length;
+  const role = getActiveRole();
+  const statusOptions = (status) => `
+    <option value="pending" ${status === "pending" ? "selected" : ""}>待確認</option>
+    <option value="completed" ${status === "completed" ? "selected" : ""}>已確認</option>
+    <option value="exception" ${status === "exception" ? "selected" : ""}>異常</option>
+    <option value="not_applicable" ${status === "not_applicable" ? "selected" : ""}>不適用</option>
+  `;
   return `
     <div class="operations-toolbar">
       <label>監管階段
@@ -1054,24 +1158,34 @@ function renderChecklistPanel() {
       <div class="progress-copy"><strong>${completed}/${items.length}</strong><span>本階段完成</span></div>
       <div class="progress-track" aria-label="本階段檢核進度"><span style="width:${items.length ? Math.round(completed / items.length * 100) : 0}%"></span></div>
     </div>
+    <div class="confirmation-legend">
+      <span><b>認證會員</b> 設計師或工程商</span>
+      <span><b>業主</b> 一般會員的案件角色</span>
+      <span><b>完成階段</b> 自動鎖定</span>
+    </div>
     <div class="checklist-execution">
       ${items.map((item) => `
-        <div class="execution-row status-${item.status}">
-          <span class="execution-marker" aria-hidden="true">${item.status === "completed" ? "✓" : item.status === "exception" ? "!" : item.status === "not_applicable" ? "−" : ""}</span>
-          <div>
+        <div class="execution-row status-${item.aggregate_status || item.status} ${item.stage_locked ? "is-locked" : ""}">
+          <span class="execution-marker" aria-hidden="true">${(item.aggregate_status || item.status) === "completed" ? "✓" : (item.aggregate_status || item.status) === "exception" ? "!" : (item.aggregate_status || item.status) === "not_applicable" ? "−" : ""}</span>
+          <div class="execution-copy">
             <strong>${escapeHtml(item.label)}</strong>
-            <small>${item.source === "case_custom" ? "案件自訂" : "TWCID 舊站基線"}${item.completed_by ? ` · ${escapeHtml(item.completed_by)}` : ""}</small>
+            <small>${item.source === "case_custom" ? "案件自訂" : "TWCID 舊站基線"}${item.stage_locked ? " · 階段已鎖定" : ""}</small>
           </div>
-          <select class="checklist-status" data-checklist-id="${item.checklist_item_id}" aria-label="${escapeHtml(item.label)}狀態">
-            <option value="pending" ${item.status === "pending" ? "selected" : ""}>待檢核</option>
-            <option value="completed" ${item.status === "completed" ? "selected" : ""}>完成</option>
-            <option value="exception" ${item.status === "exception" ? "selected" : ""}>異常</option>
-            <option value="not_applicable" ${item.status === "not_applicable" ? "selected" : ""}>不適用</option>
-          </select>
+          ${["certified_member", "owner"].map((party) => {
+            const confirmation = item.confirmations?.[party] || { status: "pending", version: 1 };
+            const partyLabel = party === "certified_member" ? "認證會員" : "業主";
+            const editable = canUse("checklist_confirm") && role.confirmationParty === party && !item.stage_locked && !legacyReadOnly;
+            return `<label class="party-confirmation">
+              <span>${partyLabel}</span>
+              <select class="checklist-confirmation" data-checklist-id="${item.checklist_item_id}" data-party="${party}" data-version="${confirmation.version || 1}" aria-label="${escapeHtml(item.label)} ${partyLabel}狀態" ${editable ? "" : "disabled"}>
+                ${statusOptions(confirmation.status || "pending")}
+              </select>
+            </label>`;
+          }).join("")}
         </div>
       `).join("")}
     </div>
-    <form class="inline-form" id="addChecklistForm">
+    <form class="inline-form" id="addChecklistForm" ${canUse("checklist_add") ? "" : "hidden"}>
       <label>新增案件檢核條文<input name="label" required maxlength="160" placeholder="輸入檢核項目名稱" /></label>
       <button class="secondary-action" type="submit">新增條文</button>
     </form>
@@ -1232,8 +1346,12 @@ function bindLegacyActions() {
     legacyStageFilter = stageSelect.value;
     renderLegacyWorkspace();
   });
-  qsa(".checklist-status").forEach((select) => select.addEventListener("change", async () => {
-    await runLegacyAction(`checklist/${encodeURIComponent(select.dataset.checklistId)}/status`, { status: select.value, actor: "local-admin" });
+  qsa(".checklist-confirmation").forEach((select) => select.addEventListener("change", async () => {
+    await runLegacyAction(`checklist/${encodeURIComponent(select.dataset.checklistId)}/confirmations/${select.dataset.party}`, {
+      status: select.value,
+      expected_version: Number(select.dataset.version),
+      actor: getActiveRole().userId,
+    });
   }));
   const addChecklistForm = qs("#addChecklistForm");
   if (addChecklistForm) addChecklistForm.addEventListener("submit", async (event) => {
@@ -1411,6 +1529,7 @@ async function advanceCase() {
           purpose: "isafe_governance_decision",
           idempotencyKey: `ui-${project.id}-${project.version}-${route.replace("/", "-")}`,
           authorize: true,
+          identity: getActiveRole(),
         }),
       },
       body: JSON.stringify(body),
@@ -1437,7 +1556,9 @@ function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const view = params.get("view");
   const caseId = params.get("case");
-  const role = params.get("role");
+  const roleAliases = { agency: "dealer", designer: "certified_designer", owner: "general_member" };
+  const requestedRole = params.get("role");
+  const role = roleAliases[requestedRole] || requestedRole;
 
   if (projectCases.some((item) => item.id === caseId)) activeCaseId = caseId;
   if (roles.some((item) => item.id === role)) activeRole = role;

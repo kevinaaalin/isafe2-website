@@ -24,6 +24,10 @@
     sans-serif;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1365,15 +1369,50 @@ p {
 
 .checklist-execution {
   border-top: 1px solid var(--line);
+  overflow-x: auto;
 }
 
 .execution-row {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 138px;
+  grid-template-columns: 34px minmax(240px, 1fr) minmax(150px, 190px) minmax(150px, 190px);
   gap: 12px;
   align-items: center;
   min-height: 62px;
+  min-width: 760px;
+  padding: 9px 0;
   border-bottom: 1px solid var(--line);
+}
+
+.execution-row.is-locked {
+  background: #f5f2ec;
+}
+
+.confirmation-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  background: #f3f0e9;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.confirmation-legend b {
+  color: var(--ink);
+}
+
+.party-confirmation {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.party-confirmation select {
+  min-height: 38px;
 }
 
 .execution-marker {
@@ -1817,12 +1856,13 @@ p {
   }
 
   .execution-row {
-    grid-template-columns: 30px minmax(0, 1fr);
+    grid-template-columns: 30px minmax(210px, 1fr) minmax(140px, 170px) minmax(140px, 170px);
     padding: 10px 0;
   }
 
-  .execution-row select {
-    grid-column: 2;
+  .confirmation-legend {
+    display: grid;
+    gap: 6px;
   }
 
   .form-grid .wide-field {
