@@ -1,0 +1,36 @@
+{
+  "$schema": "https://tigi.tw/schemas/governance-release/v1.0",
+  "version": "20260730_R7_Implementation_Integrated",
+  "release_id": "TIGI-GOVERNANCE-20260730-R7-IMPL",
+  "document_set_id": "TIGI-4MASTER-20260730-R7-IMPL-01",
+  "status": "IMPLEMENTATION_INTEGRATED_BASELINE",
+  "final_official": "NO_GO",
+  "final_official_allowed": false,
+  "source_baseline": "20260728_R6_1_RC_QA_Integrated",
+  "semantic_registry_baseline": "20260723_R6_1_Governance_Integration_RC",
+  "state_contract_version": "20260722_R5_2",
+  "state_contract_file": "isafe-state-machine-r5.2.json",
+  "legacy_parity_version": "20260723_R5_2_PARITY_1",
+  "compatibility": {
+    "breaking_contract_change_approved": false,
+    "state_machine_mode": "R5.2_CANONICAL_COMPATIBILITY",
+    "registry_mode": "R6.1_CARRY_FORWARD",
+    "offline_development_fallback": true
+  },
+  "authorization": {
+    "required_headers": [
+      "X-Server-Role",
+      "X-Case-Role",
+      "X-Case-Authorization"
+    ]
+  },
+  "release_blockers": [
+    "backend_identity",
+    "payment",
+    "artifact_storage",
+    "audit",
+    "ai_trace",
+    "governance_approval",
+    "production_deployment_acceptance"
+  ]
+}

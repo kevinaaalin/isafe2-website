@@ -1,10 +1,10 @@
 const views = {
-  r5: "TIGI R6.1 治理母本與 iSAFE R5.2 執行契約",
+  r5: "TIGI R7 技術母本與 iSAFE R5.2 執行契約",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   projects: "iSAFE 監管專案工作台",
   passport: "案件治理護照與證據鏈",
-  checklist: "R6.1 Governance Registry",
+  checklist: "R7 Governance Registry",
   risk: "Pilot 風險指標與人工覆核邊界",
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",
@@ -16,11 +16,11 @@ const views = {
 const r5Contract = {
   version: "20260722_R5_2",
   acceptedAdr: "R5.2 State Machine ADR",
-  documentVersion: "20260723_R6_1_Governance_Integration_RC",
-  releaseId: "TIGI-GOVERNANCE-20260723-R6.1-RC",
-  documentStatus: "Governance Integration Release Candidate",
+  documentVersion: "20260730_R7_Implementation_Integrated",
+  releaseId: "TIGI-GOVERNANCE-20260730-R7-IMPL",
+  documentStatus: "Implementation Integrated Baseline · Final Official NO GO",
   parityVersion: "20260723_R5_2_PARITY_1",
-  baseline: "TIGI R6.1 Governance Integration Release Candidate",
+  baseline: "TIGI R7 Implementation Integrated Baseline",
   contractFile: "isafe-state-machine-r5.2.json",
   canonicalIdCount: 13,
   apiBase: "/api/v1",
@@ -41,6 +41,8 @@ function apiContextHeaders({ tenantId = "tenant_local_tigi", organizationId = "o
     "X-Purpose": purpose || "isafe_governance_review",
     "X-Consent-Ref": "consent_local_trial",
     "X-Trace-Id": browserTraceId,
+    "X-Server-Role": "headquarter",
+    "X-Case-Authorization": "*",
   };
   if (identity) {
     headers["X-User-Id"] = identity.userId;
@@ -251,7 +253,7 @@ const roles = [
     userId: "local-certified-designer",
     confirmationParty: "certified_member",
     allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel"],
-    capabilities: ["checklist_confirm", "receipt", "evidence", "change_order", "message"],
+    capabilities: ["checklist_add", "checklist_confirm", "receipt", "evidence", "change_order", "message"],
   },
   {
     id: "certified_vendor",
@@ -265,7 +267,7 @@ const roles = [
     userId: "local-certified-vendor",
     confirmationParty: "certified_member",
     allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel"],
-    capabilities: ["checklist_confirm", "receipt", "evidence", "change_order", "message"],
+    capabilities: ["checklist_add", "checklist_confirm", "receipt", "evidence", "change_order", "message"],
   },
   {
     id: "general_member",
@@ -318,7 +320,7 @@ let currentGate = 2;
 let activeRole = "headquarter";
 let activeCaseId = "IS-2026-0001";
 let legacyWorkspace = null;
-let activeLegacyTab = "checklist";
+let activeLegacyTab = "planning";
 let legacyStageFilter = null;
 let legacyFallbackContract = null;
 let legacyReadOnly = false;
@@ -417,20 +419,25 @@ function parseCsv(text) {
 
 async function loadR61GovernanceRegistry() {
   try {
-    const [contractResponse, dgmResponse, dgiResponse] = await Promise.all([
+    const [releaseResponse, contractResponse, dgmResponse, dgiResponse] = await Promise.all([
+      fetch("./contracts/tigi-r7-implementation.json"),
       fetch("./contracts/tigi-canonical-r6.1.json"),
       fetch("./contracts/isafe-dgm-registry-r6.1.csv"),
       fetch("./contracts/dgi-migration-r6.1.csv"),
     ]);
-    if (![contractResponse, dgmResponse, dgiResponse].every((response) => response.ok)) {
-      throw new Error("One or more R6.1 registry assets could not be loaded.");
+    if (![releaseResponse, contractResponse, dgmResponse, dgiResponse].every((response) => response.ok)) {
+      throw new Error("One or more R7 carry-forward registry assets could not be loaded.");
     }
+    const r7ReleaseContract = await releaseResponse.json();
     r61CanonicalContract = await contractResponse.json();
+    if (r7ReleaseContract.version !== documentVersion || r7ReleaseContract.release_id !== releaseId) {
+      throw new Error("R7 release metadata does not match the website runtime.");
+    }
     const dgm = parseCsv(await dgmResponse.text());
     const dgi = parseCsv(await dgiResponse.text());
     const expected = r61CanonicalContract.registry_completeness;
     if (dgm.length !== expected.ISAFE_DGM.source_found || dgi.length !== expected.DGI.source_found) {
-      throw new Error(`R6.1 Registry count mismatch: DGM ${dgm.length}, DGI ${dgi.length}.`);
+      throw new Error(`R7 Registry count mismatch: DGM ${dgm.length}, DGI ${dgi.length}.`);
     }
     governanceRegistry = {
       ...governanceRegistry,
@@ -438,7 +445,7 @@ async function loadR61GovernanceRegistry() {
       dgi,
     };
   } catch (error) {
-    console.error("R6.1 Governance Registry could not be loaded.", error);
+    console.error("R7 Governance Registry could not be loaded.", error);
   }
 }
 
@@ -827,7 +834,7 @@ function renderR5Baseline() {
   const canonicalIds = qs("#r5CanonicalIds");
   if (canonicalIds) {
     canonicalIds.innerHTML = [
-      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>R6.1 canonical IDs；地端 API 已落地 11/13，match_case_id 與 deos_project_id 待補</span></div>`,
+      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>R7 carry-forward canonical IDs；地端 API 已落地 11/13，match_case_id 與 deos_project_id 待補</span></div>`,
       ...r5CanonicalIds.map((id) => `<code>${id}</code>`),
     ].join("");
   }
@@ -836,7 +843,7 @@ function renderR5Baseline() {
   if (boundary) {
     boundary.innerHTML = `
       <div><strong>${r5Contract.acceptedAdr}</strong><span>R5.2 State Machine Contract is the implementation authority for iSAFE stages.</span></div>
-      <div><strong>${r5Contract.documentVersion}</strong><span>R6.1 是治理整合母本 RC；不取代 R5.2 十階段執行契約。</span></div>
+      <div><strong>${r5Contract.documentVersion}</strong><span>R7 是 Implementation Integrated 技術母本；尚非 Final Official，且不取代 R5.2 十階段執行契約。</span></div>
       <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
       <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
     `;
@@ -870,7 +877,7 @@ const registryConfigurations = {
     ],
   },
   gs: {
-    description: "GS-01～30 已完成權威復原並納入 R6.1 RC。",
+    description: "GS-01～30 沿用已核驗來源並納入 R7 Implementation baseline。",
     columns: [
       ["registry_id", "GS ID"],
       ["name", "正式名稱"],
@@ -922,7 +929,7 @@ function renderGovernanceRegistry() {
   setText("#registryDescription", configuration.description);
 
   if (!records.length) {
-    target.innerHTML = `<div class="registry-empty">R6.1 Registry 資料載入中，或目前無法讀取資料檔。</div>`;
+    target.innerHTML = `<div class="registry-empty">R7 Registry 資料載入中，或目前無法讀取資料檔。</div>`;
     return;
   }
 
@@ -1034,6 +1041,7 @@ function renderProjectWorkspace() {
 }
 
 const legacyTabs = [
+  ["planning", "執行前確認"],
   ["checklist", "逐項檢核"],
   ["evidence", "文件與圖片"],
   ["finance", "合約與付款"],
@@ -1109,6 +1117,7 @@ function renderLegacyWorkspace() {
       ${label}
     </button>
   `).join("");
+  if (activeLegacyTab === "planning") panel.innerHTML = renderPlanningPanel();
   if (activeLegacyTab === "checklist") panel.innerHTML = renderChecklistPanel();
   if (activeLegacyTab === "evidence") panel.innerHTML = renderEvidencePanel();
   if (activeLegacyTab === "finance") panel.innerHTML = renderFinancePanel();
@@ -1136,6 +1145,45 @@ function renderLegacyWorkspace() {
     }
   });
   bindLegacyActions();
+}
+
+function renderPlanningPanel() {
+  const role = getActiveRole();
+  const baseline = legacyWorkspace.execution_checklist_baseline || { status: "draft" };
+  const frozen = baseline.status === "frozen";
+  const phases = [
+    ["design", "第一階段：設計", gates.filter((gate) => gate.id.startsWith("D"))],
+    ["construction", "第二階段：施工", gates.filter((gate) => gate.id.startsWith("C"))],
+  ];
+  return `
+    <div class="baseline-version-banner">
+      <strong>兩階段執行檢核基準 · ${frozen ? "已確認凍結" : "草稿編修中"}</strong>
+      <span>執行前可新增、刪除、修改項目名稱與內容；設計師／廠商及業主雙方確認後，凍結為後續「逐項檢核」的正式清單。</span>
+    </div>
+    ${phases.map(([phase, title, phaseGates]) => `
+      <section class="planning-phase" data-phase="${phase}">
+        <div class="section-head"><div><p class="section-kicker">Execution Baseline</p><h3>${title}</h3></div></div>
+        ${phaseGates.map((gate) => {
+          const items = legacyWorkspace.checklist.filter((item) => item.stage === gate.key);
+          return `<details class="planning-step" ${gate.key === getActiveCase().stage ? "open" : ""}>
+            <summary><strong>${gate.id} ${escapeHtml(gate.name)}</strong><span>${items.length} 項</span></summary>
+            <div class="planning-editor-list">
+              ${items.map((item) => `<form class="planning-item-form" data-checklist-id="${item.checklist_item_id}">
+                <label>項目名稱<input name="label" maxlength="160" required value="${escapeHtml(item.label)}" ${frozen ? "disabled" : ""} /></label>
+                <label>項目內容<textarea name="content" maxlength="1000" placeholder="補充驗收標準、交付內容或注意事項" ${frozen ? "disabled" : ""}>${escapeHtml(item.content || "")}</textarea></label>
+                <div class="planning-item-actions"><small>${item.source === "case_custom" ? "案件自訂" : "R5.2 預設"}</small>${frozen ? "" : `<button class="secondary-action" type="submit">儲存修改</button><button class="danger-action planning-delete" type="button">刪除</button>`}</div>
+              </form>`).join("")}
+            </div>
+            <form class="inline-form planning-add-form" data-stage="${gate.key}" ${canUse("checklist_add") && !frozen ? "" : "hidden"}><label>新增項目名稱<input name="label" required maxlength="160" placeholder="輸入檢核項名稱" /></label><label>項目內容<input name="content" maxlength="1000" placeholder="輸入驗收標準或交付內容" /></label><button class="secondary-action" type="submit">新增</button></form>
+          </details>`;
+        }).join("")}
+      </section>`).join("")}
+    <div class="planning-confirmation-panel">
+      <div><strong>設計師／廠商</strong><span>${baseline.certified_member_confirmed_at ? `已由 ${escapeHtml(baseline.certified_member_confirmed_by)} 確認` : "尚未確認"}</span></div>
+      <div><strong>業主</strong><span>${baseline.owner_confirmed_at ? `已由 ${escapeHtml(baseline.owner_confirmed_by)} 確認` : "尚未確認"}</span></div>
+      ${!frozen && role.confirmationParty ? `<button id="confirmExecutionBaseline" class="primary-action" data-party="${role.confirmationParty}" type="button">確認此版清單</button>` : ""}
+    </div>
+  `;
 }
 
 function renderChecklistPanel() {
@@ -1419,6 +1467,24 @@ function bindLegacyActions() {
       actor: "local-admin",
       actor_role: activeRole,
     });
+  });
+  qsa(".planning-add-form").forEach((form) => form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runLegacyAction("checklist", { stage: form.dataset.stage, label: form.elements.label.value, content: form.elements.content.value, actor: getActiveRole().userId });
+  }));
+  qsa(".planning-item-form").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await runLegacyAction(`checklist/${encodeURIComponent(form.dataset.checklistId)}/edit`, { label: form.elements.label.value, content: form.elements.content.value, actor: getActiveRole().userId });
+    });
+    const deleteButton = qs(".planning-delete", form);
+    if (deleteButton) deleteButton.addEventListener("click", async () => {
+      if (window.confirm("確定刪除此檢核項？")) await runLegacyAction(`checklist/${encodeURIComponent(form.dataset.checklistId)}/delete`, { actor: getActiveRole().userId });
+    });
+  });
+  const confirmExecutionBaseline = qs("#confirmExecutionBaseline");
+  if (confirmExecutionBaseline) confirmExecutionBaseline.addEventListener("click", async () => {
+    await runLegacyAction("execution-checklist-baseline/confirm", { party: confirmExecutionBaseline.dataset.party, actor: getActiveRole().userId });
   });
   qsa(".file-download").forEach((button) => button.addEventListener("click", () => {
     downloadLegacyFile(button.dataset.kind, button.dataset.fileId);
