@@ -1,0 +1,40 @@
+{
+  "schema": "tigi.technical-master-release.v1.3",
+  "version": "20260813_R8_StyleMatch_iSAFE_Integrated",
+  "previous_version": "20260810_R7_2_Style_Proposal_Vision_Commercial_QA_Integrated",
+  "release_id": "TIGI-GOVERNANCE-20260813-R8-SM-ISAFE",
+  "document_set_id": "TIGI-4MASTER-20260813-R8-SM-ISAFE-01",
+  "freeze_id": "TIGI-R8-SM-ISAFE-QA-FREEZE-20260813-01",
+  "status": "IMPLEMENTATION_QA_BASELINE",
+  "state_contract_version": "20260722_R5_2",
+  "implementation_qa": "GO",
+  "final_official": "NO_GO",
+  "final_official_allowed": false,
+  "documents": [
+    {
+      "number": "01",
+      "title": "TIGI Engineering Master",
+      "chapters": 72,
+      "stem": "01_TIGI_Engineering_Master_20260813_R8_StyleMatch_iSAFE_Integrated"
+    },
+    {
+      "number": "02",
+      "title": "SBIR Final Submission Master",
+      "chapters": 48,
+      "stem": "02_SBIR_Final_Submission_Master_20260813_R8_StyleMatch_iSAFE_Integrated"
+    },
+    {
+      "number": "03",
+      "title": "TIGI Business Plan Master",
+      "chapters": 27,
+      "stem": "03_TIGI_Business_Plan_Master_20260813_R8_StyleMatch_iSAFE_Integrated"
+    },
+    {
+      "number": "04",
+      "title": "TIGI White Paper Master",
+      "chapters": 21,
+      "stem": "04_TIGI_White_Paper_Master_20260813_R8_StyleMatch_iSAFE_Integrated"
+    }
+  ],
+  "created_at": "2026-08-13T15:10:04+08:00"
+}

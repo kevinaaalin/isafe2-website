@@ -1,0 +1,24 @@
+{
+  "$schema": "https://tigi.tw/schemas/governance-release/v1.0",
+  "version": "20260813_R8_StyleMatch_iSAFE_Integrated",
+  "release_id": "TIGI-GOVERNANCE-20260813-R8-SM-ISAFE",
+  "document_set_id": "TIGI-4MASTER-20260813-R8-SM-ISAFE-01",
+  "status": "IMPLEMENTATION_QA_BASELINE",
+  "final_official": "NO_GO",
+  "final_official_allowed": false,
+  "source_baseline": "20260810_R7_2_Style_Proposal_Vision_Commercial_QA_Integrated",
+  "state_contract_version": "20260722_R5_2",
+  "state_contract_file": "isafe-state-machine-r5.2.json",
+  "legacy_parity_version": "20260723_R5_2_PARITY_1",
+  "compatibility": {
+    "breaking_contract_change_approved": false,
+    "state_machine_mode": "R5.2_CANONICAL_COMPATIBILITY",
+    "registry_mode": "R6.1_CARRY_FORWARD",
+    "offline_development_fallback": true
+  },
+  "integrated_products": ["StyleMatchAI", "iSAFE2.0"],
+  "authorization": {
+    "required_headers": ["X-Server-Role", "X-Case-Role", "X-Case-Authorization"]
+  },
+  "release_blockers": ["production_identity", "production_artifact_storage", "production_ai_trace_registry", "governance_approval", "production_deployment_acceptance"]
+}

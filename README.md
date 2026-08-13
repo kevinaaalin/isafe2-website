@@ -1,22 +1,22 @@
-# iSAFE 2.0 R7 Implementation Website
+# iSAFE 2.0 R8 Integrated Website
 
 This is a static website prototype for iSAFE 2.0, focused on renovation governance, state-machine workflows, evidence management, SBIR planning, and investor-facing positioning.
 
-Current document master: `20260730_R7_Implementation_Integrated`.
+Current document master: `20260813_R8_StyleMatch_iSAFE_Integrated`.
 
-Release ID: `TIGI-GOVERNANCE-20260730-R7-IMPL`.
+Release ID: `TIGI-GOVERNANCE-20260813-R8-SM-ISAFE`.
 
-Release status: `IMPLEMENTATION_INTEGRATED_BASELINE`; Final Official remains `NO_GO`.
+Release status: `IMPLEMENTATION_QA_BASELINE`; Final Official remains `NO_GO`.
 
 Execution contracts:
 
 - iSAFE State Machine: `20260722_R5_2`
 - Legacy Functional Parity: `20260723_R5_2_PARITY_1`
 
-## R7 Governance Alignment
+## R8 StyleMatch AI / iSAFE 2.0 Integration
 
-- Loads the R7 implementation release contract and validates it against the website runtime.
-- Carries forward the R6.1 Canonical Contract as the semantic registry baseline until an R7 Governance Master and Canonical Contract are formally approved.
+- Loads the R8 integration release contract and validates it against the website runtime.
+- Carries forward the R6.1 Canonical Contract as the semantic registry baseline until an R8 Canonical Contract is formally approved.
 - Provides searchable read-only views for TIGI-GS 30/30, iSAFE-DGM 24/24, DGI 411/411, and the nine registry namespaces.
 - Marks DGM and DGI as `SOURCE_FOUND_PENDING_GOVERNANCE_APPROVAL`; it does not claim Final Official status.
 - Preserves all 411 `DGI-001..DGI-411` legacy aliases alongside their hierarchical source IDs.
@@ -42,9 +42,9 @@ Execution contracts:
 
 - `index.html` - Main website structure and content.
 - `styles.css` - Responsive visual design and layout.
-- `app.js` - View switching, Registry explorer, role-authorized local API controls, and R7/R5.2 contract-boundary rendering.
-- `contracts/tigi-r7-implementation.json` - R7 implementation release contract and release blockers.
-- `contracts/tigi-canonical-r6.1.json` - R6.1 semantic registry baseline carried forward by R7.
+- `app.js` - View switching, Registry explorer, role-authorized local API controls, and R8/R5.2 contract-boundary rendering.
+- `contracts/tigi-r8-integration.json` - R8 StyleMatch AI / iSAFE 2.0 integration contract and release blockers.
+- `contracts/tigi-canonical-r6.1.json` - R6.1 semantic registry baseline carried forward by R8.
 - `contracts/isafe-dgm-registry-r6.1.csv` - 24-row DGM Registry.
 - `contracts/dgi-migration-r6.1.csv` - 411-row DGI legacy-to-hierarchical migration.
 - `.nojekyll` - Keeps GitHub Pages from applying Jekyll processing.

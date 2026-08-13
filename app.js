@@ -1,10 +1,11 @@
 const views = {
-  r5: "TIGI R7 技術母本與 iSAFE R5.2 執行契約",
+  knowledge: "TIGI Governance Knowledge",
+  r5: "TIGI R8 整合技術母本與 iSAFE R5.2 執行契約",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   projects: "iSAFE 監管專案工作台",
   passport: "案件治理護照與證據鏈",
-  checklist: "R7 Governance Registry",
+  checklist: "R8 Governance Registry",
   risk: "Pilot 風險指標與人工覆核邊界",
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",
@@ -16,11 +17,11 @@ const views = {
 const r5Contract = {
   version: "20260722_R5_2",
   acceptedAdr: "R5.2 State Machine ADR",
-  documentVersion: "20260730_R7_Implementation_Integrated",
-  releaseId: "TIGI-GOVERNANCE-20260730-R7-IMPL",
-  documentStatus: "Implementation Integrated Baseline · Final Official NO GO",
+  documentVersion: "20260813_R8_StyleMatch_iSAFE_Integrated",
+  releaseId: "TIGI-GOVERNANCE-20260813-R8-SM-ISAFE",
+  documentStatus: "Implementation QA Baseline · Final Official NO GO",
   parityVersion: "20260723_R5_2_PARITY_1",
-  baseline: "TIGI R7 Implementation Integrated Baseline",
+  baseline: "TIGI R8 StyleMatch AI / iSAFE 2.0 Integrated Baseline",
   contractFile: "isafe-state-machine-r5.2.json",
   canonicalIdCount: 13,
   apiBase: "/api/v1",
@@ -226,7 +227,7 @@ const roles = [
     memberTier: "dealer",
     caseRole: "case_coordinator",
     userId: "local-dealer",
-    allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel", "business"],
+    allowedViews: ["overview", "gate", "projects", "passport", "knowledge", "risk", "glevel", "business"],
     capabilities: ["checklist_add", "baseline", "receipt", "evidence", "change_order", "message"],
   },
   {
@@ -238,7 +239,7 @@ const roles = [
     memberTier: "association",
     caseRole: "mediator",
     userId: "local-association",
-    allowedViews: ["overview", "projects", "passport", "risk", "glevel", "association"],
+    allowedViews: ["overview", "projects", "passport", "knowledge", "risk", "glevel", "association"],
     capabilities: ["message"],
   },
   {
@@ -420,24 +421,24 @@ function parseCsv(text) {
 async function loadR61GovernanceRegistry() {
   try {
     const [releaseResponse, contractResponse, dgmResponse, dgiResponse] = await Promise.all([
-      fetch("./contracts/tigi-r7-implementation.json"),
+      fetch("./contracts/tigi-r8-integration.json"),
       fetch("./contracts/tigi-canonical-r6.1.json"),
       fetch("./contracts/isafe-dgm-registry-r6.1.csv"),
       fetch("./contracts/dgi-migration-r6.1.csv"),
     ]);
     if (![releaseResponse, contractResponse, dgmResponse, dgiResponse].every((response) => response.ok)) {
-      throw new Error("One or more R7 carry-forward registry assets could not be loaded.");
+      throw new Error("One or more R8 carry-forward registry assets could not be loaded.");
     }
     const r7ReleaseContract = await releaseResponse.json();
     r61CanonicalContract = await contractResponse.json();
-    if (r7ReleaseContract.version !== documentVersion || r7ReleaseContract.release_id !== releaseId) {
-      throw new Error("R7 release metadata does not match the website runtime.");
+    if (r7ReleaseContract.version !== r5Contract.documentVersion || r7ReleaseContract.release_id !== r5Contract.releaseId) {
+      throw new Error("R8 release metadata does not match the website runtime.");
     }
     const dgm = parseCsv(await dgmResponse.text());
     const dgi = parseCsv(await dgiResponse.text());
     const expected = r61CanonicalContract.registry_completeness;
     if (dgm.length !== expected.ISAFE_DGM.source_found || dgi.length !== expected.DGI.source_found) {
-      throw new Error(`R7 Registry count mismatch: DGM ${dgm.length}, DGI ${dgi.length}.`);
+      throw new Error(`R8 Registry count mismatch: DGM ${dgm.length}, DGI ${dgi.length}.`);
     }
     governanceRegistry = {
       ...governanceRegistry,
@@ -445,7 +446,7 @@ async function loadR61GovernanceRegistry() {
       dgi,
     };
   } catch (error) {
-    console.error("R7 Governance Registry could not be loaded.", error);
+    console.error("R8 Governance Registry could not be loaded.", error);
   }
 }
 
@@ -651,6 +652,70 @@ function setView(viewId) {
   }
   if (nextView === "r5") renderR5Baseline();
   if (nextView === "checklist") renderGovernanceRegistry();
+  if (nextView === "knowledge") loadKnowledgeIndex();
+}
+
+let governanceKnowledgeIndex = null;
+let governanceKnowledgeError = null;
+
+function knowledgeTokens(value) {
+  const normalized = String(value || "").toLowerCase().replace(/\s+/g, "");
+  return normalized.match(/[\u4e00-\u9fff]{2}|[a-z0-9_]+/g) || [];
+}
+
+async function loadKnowledgeIndex() {
+  if (governanceKnowledgeIndex || governanceKnowledgeError) return governanceKnowledgeIndex;
+  const meta = qs("#knowledgeMeta");
+  const status = qs("#knowledgeStatus");
+  try {
+    const response = await fetch("tigi-corpus/knowledge-index.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Index request failed (${response.status})`);
+    governanceKnowledgeIndex = await response.json();
+    if (meta) meta.textContent = `${governanceKnowledgeIndex.releaseId} · ${governanceKnowledgeIndex.chunkCount} chunks`;
+    if (status) status.textContent = "本機索引已載入；結果僅供人工覆核與治理判定輸入。";
+    return governanceKnowledgeIndex;
+  } catch (error) {
+    governanceKnowledgeError = error;
+    if (meta) meta.textContent = "索引無法載入";
+    if (status) status.textContent = `無法載入本機 TIGI 索引：${error.message}`;
+    return null;
+  }
+}
+
+async function queryGovernanceKnowledge() {
+  const queryInput = qs("#knowledgeQuery");
+  const resultTarget = qs("#knowledgeResults");
+  const status = qs("#knowledgeStatus");
+  const query = queryInput?.value.trim() || "";
+  if (!query || !resultTarget) return;
+
+  const index = await loadKnowledgeIndex();
+  if (!index) return;
+  const tokens = knowledgeTokens(query);
+  const results = (index.chunks || [])
+    .map((chunk) => {
+      const haystack = `${chunk.title} ${chunk.heading} ${chunk.text}`.toLowerCase();
+      const score = tokens.reduce((total, token) => total + (haystack.includes(token) ? 1 : 0), 0);
+      return { ...chunk, score };
+    })
+    .filter((chunk) => chunk.score > 0)
+    .sort((left, right) => right.score - left.score || left.order - right.order)
+    .slice(0, 6);
+
+  if (status) status.textContent = results.length
+    ? `找到 ${results.length} 筆本機來源。請由具權限角色覆核後，才可作為治理判定輸入。`
+    : "未找到足夠的可信來源，應建立 Knowledge Gap，不能以模型推測取代。";
+  resultTarget.innerHTML = results.length
+    ? results.map((result) => `
+        <article class="knowledge-result">
+          <div class="knowledge-result-meta"><span>${escapeHtml(result.categoryLabel || result.category || "TIGI")}</span><span>relevance ${result.score}</span></div>
+          <h3>${escapeHtml(result.title)}</h3>
+          <p class="knowledge-heading">${escapeHtml(result.heading || "")}</p>
+          <p>${escapeHtml(result.text || "").slice(0, 520)}${String(result.text || "").length > 520 ? "..." : ""}</p>
+          <a href="${encodeURI(result.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(result.path || result.sourceUrl)} ↗</a>
+        </article>
+      `).join("")
+    : '<p class="empty-state">沒有足夠的可信來源。請建立 Knowledge Gap，改由人工補件、驗證或核准流程處理。</p>';
 }
 
 function renderGateMachine() {
@@ -834,7 +899,7 @@ function renderR5Baseline() {
   const canonicalIds = qs("#r5CanonicalIds");
   if (canonicalIds) {
     canonicalIds.innerHTML = [
-      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>R7 carry-forward canonical IDs；地端 API 已落地 11/13，match_case_id 與 deos_project_id 待補</span></div>`,
+      `<div class="canonical-summary"><strong>${r5Contract.canonicalIdCount}</strong><span>R8 carry-forward canonical IDs；地端 API 已落地 11/13，match_case_id 與 deos_project_id 待補</span></div>`,
       ...r5CanonicalIds.map((id) => `<code>${id}</code>`),
     ].join("");
   }
@@ -843,7 +908,7 @@ function renderR5Baseline() {
   if (boundary) {
     boundary.innerHTML = `
       <div><strong>${r5Contract.acceptedAdr}</strong><span>R5.2 State Machine Contract is the implementation authority for iSAFE stages.</span></div>
-      <div><strong>${r5Contract.documentVersion}</strong><span>R7 是 Implementation Integrated 技術母本；尚非 Final Official，且不取代 R5.2 十階段執行契約。</span></div>
+      <div><strong>${r5Contract.documentVersion}</strong><span>R8 是 StyleMatch AI／iSAFE 2.0 Integrated 技術母本；尚非 Final Official，且不取代 R5.2 十階段執行契約。</span></div>
       <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
       <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
     `;
@@ -877,7 +942,7 @@ const registryConfigurations = {
     ],
   },
   gs: {
-    description: "GS-01～30 沿用已核驗來源並納入 R7 Implementation baseline。",
+    description: "GS-01～30 沿用已核驗來源並納入 R8 Integrated baseline。",
     columns: [
       ["registry_id", "GS ID"],
       ["name", "正式名稱"],
@@ -929,7 +994,7 @@ function renderGovernanceRegistry() {
   setText("#registryDescription", configuration.description);
 
   if (!records.length) {
-    target.innerHTML = `<div class="registry-empty">R7 Registry 資料載入中，或目前無法讀取資料檔。</div>`;
+    target.innerHTML = `<div class="registry-empty">R8 Registry 資料載入中，或目前無法讀取資料檔。</div>`;
     return;
   }
 
@@ -1649,6 +1714,9 @@ async function init() {
 
   const printBtn = qs("#printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
+
+  const knowledgeSearchBtn = qs("#knowledgeSearchBtn");
+  if (knowledgeSearchBtn) knowledgeSearchBtn.addEventListener("click", queryGovernanceKnowledge);
 
   await Promise.all([
     loadLegacyFallbackContract(),
