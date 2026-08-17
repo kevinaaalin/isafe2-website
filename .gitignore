@@ -2,3 +2,4 @@ analysis-preview-*.log
 isafe-web-parity.*.log
 edge-r5-dom-check.html
 edge-r52-dom-check.html
+*.log

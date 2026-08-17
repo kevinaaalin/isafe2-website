@@ -2084,6 +2084,127 @@ p {
   }
 }
 
+.r9-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.r9-toolbar label {
+  display: grid;
+  gap: 6px;
+  min-width: min(520px, 100%);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.r9-toolbar select {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0 12px;
+}
+
+.r9-boundary-note {
+  margin: 16px 0 0;
+  border-left: 3px solid #b7791f;
+  background: #fff8e7;
+  padding: 12px 14px;
+  color: #61430f;
+}
+
+#r9GovernanceStatus {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
+  white-space: normal;
+}
+
+.r9-case-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.r9-case-summary > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  background: #fff;
+  padding: 12px;
+}
+
+.r9-case-summary span,
+.r9-object-row span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.r9-case-summary strong {
+  overflow-wrap: anywhere;
+}
+
+.r9-object-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.r9-object-card {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 12px;
+}
+
+.r9-object-head,
+.r9-object-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.r9-object-head {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 9px;
+}
+
+.r9-object-head span {
+  color: #8a5b0a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.r9-object-row {
+  align-items: start;
+  padding-top: 8px;
+}
+
+.r9-object-row code {
+  max-width: 72%;
+  overflow-wrap: anywhere;
+  text-align: right;
+  white-space: normal;
+}
+
+@media (max-width: 760px) {
+  .r9-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .r9-case-summary {
+    grid-template-columns: 1fr;
+  }
+
+  #r9GovernanceStatus {
+    text-align: left;
+  }
+}
+
 @media print {
   .sidebar,
   .topbar-actions {

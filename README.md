@@ -1,10 +1,10 @@
-# iSAFE 2.0 R8 Integrated Website
+# iSAFE 2.0 R9 / Patent V7 Governance Website
 
 This is a static website prototype for iSAFE 2.0, focused on renovation governance, state-machine workflows, evidence management, SBIR planning, and investor-facing positioning.
 
-Current document master: `20260813_R8_StyleMatch_iSAFE_Integrated`.
+Current document master: `20260814_R9_Patent_V7`.
 
-Release ID: `TIGI-GOVERNANCE-20260813-R8-SM-ISAFE`.
+Release ID: `TIGI-GOVERNANCE-20260814-R9-PATENT-V7`.
 
 Release status: `IMPLEMENTATION_QA_BASELINE`; Final Official remains `NO_GO`.
 

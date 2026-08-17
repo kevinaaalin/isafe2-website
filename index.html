@@ -31,7 +31,7 @@
             <span>監管專案</span>
           </button>
           <button class="nav-item" data-view="r5" type="button">
-            <span class="nav-icon" aria-hidden="true">R8</span>
+            <span class="nav-icon" aria-hidden="true">R9</span>
             <span>R8／R5.2 契約</span>
           </button>
           <button class="nav-item" data-view="passport" type="button">
@@ -41,6 +41,10 @@
           <button class="nav-item" data-view="checklist" type="button">
             <span class="nav-icon" aria-hidden="true">▦</span>
             <span>治理 Registry</span>
+          </button>
+          <button class="nav-item" data-view="governance" type="button">
+            <span class="nav-icon" aria-hidden="true">R9</span>
+            <span>R9 治理物件</span>
           </button>
           <button class="nav-item" data-view="knowledge" type="button">
             <span class="nav-icon" aria-hidden="true">⌕</span>
@@ -286,6 +290,50 @@
           </div>
         </section>
 
+        <section class="view" id="governance" aria-labelledby="r9-governance-title">
+          <div class="layout-grid">
+            <article class="surface span-12">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Patent V7 Governance Objects</p>
+                  <h2 id="r9-governance-title">R9 案件治理物件</h2>
+                </div>
+                <span class="status-pill warning" id="r9GovernanceStatus">等待讀取</span>
+              </div>
+              <div class="r9-toolbar">
+                <label>
+                  <span>案件</span>
+                  <select id="r9CaseSelect"></select>
+                </label>
+                <button class="primary-action" id="r9RefreshBtn" type="button">重新讀取</button>
+              </div>
+              <p class="r9-boundary-note">Risk、Trigger、外部評估與稽核輸出是可追溯治理物件；只有既有 R5.2 Gate／Authority 流程能改變正式案件階段。</p>
+              <div class="r9-case-summary" id="r9CaseSummary"></div>
+            </article>
+
+            <article class="surface span-6">
+              <p class="section-kicker">Risk State Engine</p>
+              <h2>風險狀態</h2>
+              <div class="r9-object-list" id="r9RiskStates"></div>
+            </article>
+            <article class="surface span-6">
+              <p class="section-kicker">Trigger Rule Engine</p>
+              <h2>觸發評估與待辦</h2>
+              <div class="r9-object-list" id="r9TriggerEvaluations"></div>
+            </article>
+            <article class="surface span-6">
+              <p class="section-kicker">External Evaluation Adapter</p>
+              <h2>外部治理評估</h2>
+              <div class="r9-object-list" id="r9ExternalEvaluations"></div>
+            </article>
+            <article class="surface span-6">
+              <p class="section-kicker">Decision &amp; Audit Output</p>
+              <h2>治理決策與稽核輸出</h2>
+              <div class="r9-object-list" id="r9DecisionAudit"></div>
+            </article>
+          </div>
+        </section>
+
         <section class="view" id="passport" aria-labelledby="passport-title">
           <div class="layout-grid">
             <article class="surface span-5">
@@ -378,7 +426,7 @@
               <p class="section-kicker">Release Boundary</p>
               <h2>R8 發布與執行邊界</h2>
               <div class="upgrade-map">
-                <div><strong>文件母本</strong><span>R8 StyleMatch AI / iSAFE 2.0 Integrated 是目前整合技術母本，尚非 Final Official。</span></div>
+                <div><strong>文件母本</strong><span>R9 / Patent V7 Governance Aligned 是目前治理實作母本，尚非 Final Official。</span></div>
                 <div><strong>執行契約</strong><span>iSAFE 十階段仍以 R5.2 State Machine Contract 為準。</span></div>
                 <div><strong>案件檢核</strong><span>82 項 Legacy Parity 已可執行，但不等同 24 份 DGM 已獲治理核准。</span></div>
                 <div><strong>正式發布</strong><span>DGM/DGI 核准、DGI ID 遷移與參照完整性 QA 完成前維持 RC。</span></div>
@@ -569,7 +617,7 @@
             <article class="surface span-12">
               <div class="section-head">
                 <div>
-                  <p class="section-kicker">TIGI R8 Integrated Baseline</p>
+                  <p class="section-kicker">TIGI R9 / Patent V7 Baseline</p>
                   <h2 id="r5-title">TIGI R8 整合技術母本與 iSAFE R5.2 執行契約</h2>
                 </div>
                 <span class="status-pill warning">Final Official · NO GO</span>
@@ -577,14 +625,14 @@
               <div class="r5-hero">
                 <div>
                   <span class="r5-label">Document Baseline</span>
-                  <strong>TIGI R8 StyleMatch AI / iSAFE 2.0 Integrated Baseline</strong>
-                  <p>R8 是目前的 StyleMatch AI／iSAFE 2.0 整合技術母本；依相容性邊界，本地網站仍以 R5.2 canonical state machine 作為十階段執行依據，並以 Legacy Parity 契約承載舊站監管項目。R8 尚非 Final Official。</p>
+                  <strong>TIGI R9 / Patent V7 Governance Alignment Baseline</strong>
+                  <p>R9 / Patent V7 是目前的治理實作母本；依相容性邊界，本地網站仍以 R5.2 canonical state machine 作為十階段執行依據，並以 Legacy Parity 契約承載舊站監管項目。R9 尚非 Final Official。</p>
                 </div>
                 <div class="r5-contract-id">
                   <span>Document Master</span>
-                  <strong>20260813_R8_StyleMatch_iSAFE_Integrated</strong>
+                  <strong>20260814_R9_Patent_V7</strong>
                   <span>Release ID</span>
-                  <strong>TIGI-GOVERNANCE-20260813-R8-SM-ISAFE</strong>
+                  <strong>TIGI-GOVERNANCE-20260814-R9-PATENT-V7</strong>
                   <span>State Contract</span>
                   <strong>20260722_R5_2</strong>
                   <span>Legacy Parity</span>

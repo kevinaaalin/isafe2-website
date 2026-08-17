@@ -1,11 +1,12 @@
 const views = {
   knowledge: "TIGI Governance Knowledge",
-  r5: "TIGI R8 整合技術母本與 iSAFE R5.2 執行契約",
+  governance: "R9 Patent V7 Governance Objects",
+  r5: "TIGI R9 / Patent V7 治理母本與 iSAFE R5.2 執行契約",
   overview: "台灣室內裝修產業治理基礎設施",
   gate: "可治理的案件狀態機",
   projects: "iSAFE 監管專案工作台",
   passport: "案件治理護照與證據鏈",
-  checklist: "R8 Governance Registry",
+  checklist: "R9 Governance Registry",
   risk: "Pilot 風險指標與人工覆核邊界",
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",
@@ -17,11 +18,11 @@ const views = {
 const r5Contract = {
   version: "20260722_R5_2",
   acceptedAdr: "R5.2 State Machine ADR",
-  documentVersion: "20260813_R8_StyleMatch_iSAFE_Integrated",
-  releaseId: "TIGI-GOVERNANCE-20260813-R8-SM-ISAFE",
+  documentVersion: "20260814_R9_Patent_V7",
+  releaseId: "TIGI-GOVERNANCE-20260814-R9-PATENT-V7",
   documentStatus: "Implementation QA Baseline · Final Official NO GO",
   parityVersion: "20260723_R5_2_PARITY_1",
-  baseline: "TIGI R8 StyleMatch AI / iSAFE 2.0 Integrated Baseline",
+  baseline: "TIGI R9 / Patent V7 Governance Alignment Baseline",
   contractFile: "isafe-state-machine-r5.2.json",
   canonicalIdCount: 13,
   apiBase: "/api/v1",
@@ -421,18 +422,18 @@ function parseCsv(text) {
 async function loadR61GovernanceRegistry() {
   try {
     const [releaseResponse, contractResponse, dgmResponse, dgiResponse] = await Promise.all([
-      fetch("./contracts/tigi-r8-integration.json"),
+      fetch("./contracts/tigi-r9-patent-v7-alignment.json"),
       fetch("./contracts/tigi-canonical-r6.1.json"),
       fetch("./contracts/isafe-dgm-registry-r6.1.csv"),
       fetch("./contracts/dgi-migration-r6.1.csv"),
     ]);
     if (![releaseResponse, contractResponse, dgmResponse, dgiResponse].every((response) => response.ok)) {
-      throw new Error("One or more R8 carry-forward registry assets could not be loaded.");
+      throw new Error("One or more R9 alignment or carry-forward registry assets could not be loaded.");
     }
     const r7ReleaseContract = await releaseResponse.json();
     r61CanonicalContract = await contractResponse.json();
     if (r7ReleaseContract.version !== r5Contract.documentVersion || r7ReleaseContract.release_id !== r5Contract.releaseId) {
-      throw new Error("R8 release metadata does not match the website runtime.");
+      throw new Error("R9 release metadata does not match the website runtime.");
     }
     const dgm = parseCsv(await dgmResponse.text());
     const dgi = parseCsv(await dgiResponse.text());
@@ -653,6 +654,7 @@ function setView(viewId) {
   if (nextView === "r5") renderR5Baseline();
   if (nextView === "checklist") renderGovernanceRegistry();
   if (nextView === "knowledge") loadKnowledgeIndex();
+  if (nextView === "governance") loadR9GovernanceObjects();
 }
 
 let governanceKnowledgeIndex = null;
@@ -699,7 +701,7 @@ async function queryGovernanceKnowledge() {
       return { ...chunk, score };
     })
     .filter((chunk) => chunk.score > 0)
-    .sort((left, right) => right.score - left.score || left.order - right.order)
+    .sort((left, right) => right.score - left.score || Number(left.canonicalOrder || 0) - Number(right.canonicalOrder || 0) || Number(left.sectionOrder || 0) - Number(right.sectionOrder || 0))
     .slice(0, 6);
 
   if (status) status.textContent = results.length
@@ -716,6 +718,87 @@ async function queryGovernanceKnowledge() {
         </article>
       `).join("")
     : '<p class="empty-state">沒有足夠的可信來源。請建立 Knowledge Gap，改由人工補件、驗證或核准流程處理。</p>';
+}
+
+function renderR9ObjectList(selector, records, renderRecord) {
+  const target = qs(selector);
+  if (!target) return;
+  target.innerHTML = records.length
+    ? records.map(renderRecord).join("")
+    : '<p class="empty-state">目前尚無記錄。</p>';
+}
+
+function r9RecordCard(title, status, rows) {
+  return `
+    <article class="r9-object-card">
+      <div class="r9-object-head"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(status || "pending")}</span></div>
+      ${rows.map(([label, value]) => `<div class="r9-object-row"><span>${escapeHtml(label)}</span><code>${escapeHtml(value ?? "-")}</code></div>`).join("")}
+    </article>
+  `;
+}
+
+async function loadR9GovernanceObjects() {
+  const select = qs("#r9CaseSelect");
+  const status = qs("#r9GovernanceStatus");
+  const selectedId = select?.value || activeCaseId;
+
+  if (select) {
+    const previous = selectedId;
+    select.innerHTML = projectCases.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.id)} · ${escapeHtml(item.title)}</option>`).join("");
+    select.value = projectCases.some((item) => item.id === previous) ? previous : activeCaseId;
+  }
+
+  const caseId = select?.value || activeCaseId;
+  if (!apiEnabled) {
+    if (status) status.textContent = "API 未啟用";
+    renderR9ObjectList("#r9RiskStates", [], () => "");
+    renderR9ObjectList("#r9TriggerEvaluations", [], () => "");
+    renderR9ObjectList("#r9ExternalEvaluations", [], () => "");
+    renderR9ObjectList("#r9DecisionAudit", [], () => "");
+    return;
+  }
+
+  if (status) status.textContent = "讀取中";
+  try {
+    const response = await fetch(`${apiOrigin}/api/v1/isafe/cases/${encodeURIComponent(caseId)}/governance/r9`, {
+      headers: apiContextHeaders({ identity: getActiveRole() }),
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`R9 API ${response.status}`);
+    const data = await response.json();
+    if (status) status.textContent = `${data.current_stage} · R5.2 authoritative`;
+    const summary = qs("#r9CaseSummary");
+    if (summary) summary.innerHTML = `
+      <div><span>案件</span><strong>${escapeHtml(data.isafe_case_id)}</strong></div>
+      <div><span>正式階段</span><strong>${escapeHtml(data.current_stage)}</strong></div>
+      <div><span>Gate</span><strong>${escapeHtml(data.gate_status)}</strong></div>
+      <div><span>發布基線</span><strong>${escapeHtml(data.release_id)}</strong></div>
+    `;
+
+    renderR9ObjectList("#r9RiskStates", data.risk_states || [], (item) => r9RecordCard(item.state, item.human_review_status, [
+      ["ID", item.risk_state_id], ["分數", item.score], ["規則", item.rule_version], ["決策", item.decision_object_id], ["Trace", item.trace_id],
+    ]));
+    renderR9ObjectList("#r9TriggerEvaluations", data.trigger_evaluations || [], (item) => r9RecordCard(item.result, item.human_review_status, [
+      ["規則", item.rule_id], ["版本", item.rule_version], ["待辦", item.pending_action], ["原因", item.reason], ["Trace", item.trace_id],
+    ]));
+    renderR9ObjectList("#r9ExternalEvaluations", data.external_evaluations || [], (item) => r9RecordCard(item.evaluation_type, item.review_status, [
+      ["Provider", item.provider_id], ["權威分類", item.authority_classification], ["Input hash", item.input_sha256], ["Output hash", item.output_sha256], ["決策", item.decision_object_id],
+    ]));
+    const combined = [
+      ...(data.decision_objects || []).map((item) => ({ ...item, record_kind: "Decision" })),
+      ...(data.audit_outputs || []).map((item) => ({ ...item, record_kind: "Audit" })),
+      ...(data.notifications || []).map((item) => ({ ...item, record_kind: "Notification" })),
+    ];
+    renderR9ObjectList("#r9DecisionAudit", combined, (item) => {
+      if (item.record_kind === "Decision") return r9RecordCard(`Decision · ${item.outcome}`, item.authority_role, [["ID", item.decision_object_id], ["類型", item.decision_type], ["規則", item.rule_version], ["決策者", item.decided_by], ["Trace", item.trace_id]]);
+      if (item.record_kind === "Notification") return r9RecordCard(`Notification · ${item.severity}`, item.status, [["ID", item.notification_id], ["來源", item.source_id], ["政策", item.policy_version], ["升級層級", item.escalation_level], ["到期", item.due_at]]);
+      return r9RecordCard(`Audit · ${item.output_type}`, item.status, [["ID", item.audit_output_id], ["SHA-256", item.payload_sha256], ["決策", item.decision_object_id], ["簽署", item.signed_by], ["Trace", item.trace_id]]);
+    });
+  } catch (error) {
+    if (status) status.textContent = "讀取失敗";
+    const summary = qs("#r9CaseSummary");
+    if (summary) summary.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
+  }
 }
 
 function renderGateMachine() {
@@ -908,7 +991,7 @@ function renderR5Baseline() {
   if (boundary) {
     boundary.innerHTML = `
       <div><strong>${r5Contract.acceptedAdr}</strong><span>R5.2 State Machine Contract is the implementation authority for iSAFE stages.</span></div>
-      <div><strong>${r5Contract.documentVersion}</strong><span>R8 是 StyleMatch AI／iSAFE 2.0 Integrated 技術母本；尚非 Final Official，且不取代 R5.2 十階段執行契約。</span></div>
+      <div><strong>${r5Contract.documentVersion}</strong><span>R9 / Patent V7 是目前治理實作母本；尚非 Final Official，且不取代 R5.2 十階段執行契約。</span></div>
       <div><strong>${r5Contract.apiBase}</strong><span>All implementation-facing APIs stay under the versioned API base path.</span></div>
       <div><strong>Human Review Required</strong><span>AI Agent may recommend, summarize, and flag risk, but it must not write governance decisions or payment approvals.</span></div>
     `;
@@ -1717,6 +1800,11 @@ async function init() {
 
   const knowledgeSearchBtn = qs("#knowledgeSearchBtn");
   if (knowledgeSearchBtn) knowledgeSearchBtn.addEventListener("click", queryGovernanceKnowledge);
+
+  const r9RefreshBtn = qs("#r9RefreshBtn");
+  if (r9RefreshBtn) r9RefreshBtn.addEventListener("click", loadR9GovernanceObjects);
+  const r9CaseSelect = qs("#r9CaseSelect");
+  if (r9CaseSelect) r9CaseSelect.addEventListener("change", loadR9GovernanceObjects);
 
   await Promise.all([
     loadLegacyFallbackContract(),
