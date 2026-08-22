@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>iSAFE 2.0 | 產業數位治理工作台</title>
-    <link rel="stylesheet" href="styles.css?v=20260727-membership-bilateral2" />
+    <link rel="stylesheet" href="styles.css?v=20260822-field-evidence-r921" />
   </head>
   <body>
     <div class="app-shell">
@@ -46,7 +46,10 @@
             <span class="nav-icon" aria-hidden="true">R9</span>
             <span>R9 治理物件</span>
           </button>
-          <button class="nav-item" data-view="knowledge" type="button">
+          <button class="nav-item" data-view="fieldEvidence" type="button">
+            <span class="nav-icon" aria-hidden="true">▧</span>
+            <span>現場證據</span>
+          </button>          <button class="nav-item" data-view="knowledge" type="button">
             <span class="nav-icon" aria-hidden="true">⌕</span>
             <span>可信知識</span>
           </button>
@@ -667,7 +670,39 @@
           </div>
         </section>
 
-        <section class="view" id="knowledge" aria-labelledby="knowledge-title">
+        <section class="view" id="fieldEvidence" aria-labelledby="field-evidence-title">
+          <div class="layout-grid">
+            <article class="surface span-12 operations-panel">
+              <div class="section-head"><div><p class="section-kicker">R9.2.1 Candidate Addendum</p><h2 id="field-evidence-title">現場證據與外部 Provider</h2><p>建立證據需求、上傳人工或外部 Evidence Package，再由授權角色覆核。接收與覆核都不會直接改變 Gate、付款或 R5.2 狀態。</p></div><span class="status-pill warning" id="fieldEvidenceStatus">尚未載入</span></div>
+              <div class="form-grid">
+                <label>Project ID<input id="fieldProjectId" value="project-field-local" /></label>
+                <label>治理步驟<select id="fieldStepId"><option value="D1_design_preparation">D1 設計準備</option><option value="D2_requirement_confirmation">D2 需求確認</option><option value="C1_pre_construction_preparation">C1 施工準備</option><option value="C2_construction_execution" selected>C2 施工執行</option><option value="C3_inspection_and_acceptance">C3 查驗驗收</option></select></label>
+                <label>Evidence Type<input id="fieldEvidenceType" value="site_photo" /></label><label>Requirement ID<input id="fieldRequirementId" value="REQ-LOCAL-SITE-PHOTO" /></label>
+                <label class="wide-field">需求說明<input id="fieldRequirementDescription" value="現場照片須保留原始檔、時間、空間、工種、階段與事件分類" /></label>
+              </div>
+              <div class="field-evidence-actions"><button class="secondary-action" id="fieldCreateRequirement" type="button">建立證據需求</button><button class="secondary-action" id="fieldRegisterProvider" type="button">登記本機 Provider</button><button class="primary-action" id="fieldRefresh" type="button">重新整理</button></div>
+            </article>
+            <article class="surface span-5 operations-panel">
+              <p class="section-kicker">Manual Evidence Capture</p><h2>人工上傳</h2>
+              <div class="form-grid field-evidence-form"><label>Media ID<input id="fieldMediaId" value="manual-photo-001" /></label><label>Object Ref<input id="fieldObjectRef" value="local://manual/site-photo-001.jpg" /></label><label>空間<input id="fieldSpace" value="客廳" /></label><label>工種<input id="fieldTrade" value="木作" /></label><label>階段<input id="fieldStage" value="施工中" /></label><label>事件類型<input id="fieldEventType" value="查驗" /></label><label class="wide-field">說明<textarea id="fieldCaption">木作施工現場查驗照片</textarea></label></div>
+              <button class="primary-action" id="fieldManualSubmit" type="button">提交待覆核證據</button>
+            </article>
+            <article class="surface span-7 operations-panel">
+              <div class="section-head"><div><p class="section-kicker">Smart Supervision SaaS</p><h2>批次現場照片與五維候選分類</h2></div><span class="status-pill warning">待人工覆核</span></div>
+              <p>照片只在本機保存。系統依 Project／Space／Trade／Stage／Event Type 產生候選標籤，不直接形成 Gate 或付款判定。</p>
+              <label class="field-file-picker">選擇現場照片或影片<input id="fieldMediaFiles" type="file" accept="image/jpeg,image/png,image/webp,video/mp4" multiple /></label><label class="field-file-picker">人工校正原因<input id="fieldCorrectionReason" value="現場人員核對後修正候選分類" /></label>
+              <div class="field-evidence-actions"><button class="primary-action" id="fieldBatchCapture" type="button">匯入並建立候選分類</button><button class="secondary-action" id="fieldMapMedia" type="button">對應至目前 Evidence Requirement</button><button class="secondary-action" id="fieldGenerateLog" type="button">產生候選施工日誌</button></div><div id="fieldMediaList"><p class="empty-state">尚未匯入現場媒體。</p></div>
+            </article>
+            <article class="surface span-5"><p class="section-kicker">Construction Log</p><h2>施工日誌候選</h2><div id="fieldLogList"><p class="empty-state">尚未產生日誌。</p></div></article>
+            <article class="surface span-12 operations-panel">
+              <div class="section-head"><div><p class="section-kicker">GS-20 / GS-21</p><h2>NCR 缺失與 CAPA 改善追蹤</h2><p>由選取照片建立候選缺失，經人工確認後才能建立 CAPA；本頁不能自動關閉缺失或通過驗收。</p></div><span class="status-pill warning">人工決定</span></div>
+              <div class="form-grid"><label>嚴重度<select id="fieldNcrSeverity"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option><option value="critical">重大</option></select></label><label>責任人<input id="fieldNcrResponsible" value="待指派施工單位" /></label><label>改善期限<input id="fieldNcrDueDate" type="date" /></label><label class="wide-field">矯正措施<input id="fieldCorrectiveAction" value="依現場查驗結果完成改善並補上複驗照片" /></label></div>
+              <div class="field-evidence-actions"><button class="primary-action" id="fieldDetectDefects" type="button">從選取媒體建立候選缺失</button></div><div class="ncr-capa-grid"><div><h3>NCR 佇列</h3><div id="fieldNcrList"><p class="empty-state">尚無候選缺失。</p></div></div><div><h3>CAPA 改善追蹤</h3><div id="fieldCapaList"><p class="empty-state">尚無 CAPA。</p></div></div></div>
+            </article>
+            <article class="surface span-7"><p class="section-kicker">Evidence Requirement</p><h2>目前需求</h2><div id="fieldRequirementList"><p class="empty-state">尚未建立需求。</p></div></article>
+            <article class="surface span-12"><div class="section-head"><div><p class="section-kicker">Human Review Queue</p><h2>Evidence Package 覆核佇列</h2></div><span class="status-pill">不觸發治理狀態</span></div><div id="fieldPackageList"><p class="empty-state">尚無 Evidence Package。</p></div></article>
+          </div>
+        </section>        <section class="view" id="knowledge" aria-labelledby="knowledge-title">
           <div class="layout-grid">
             <article class="surface span-12">
               <div class="section-head">
@@ -708,6 +743,6 @@
         </section>
       </main>
     </div>
-    <script src="app.js?v=20260727-membership-bilateral2"></script>
+    <script src="app.js?v=20260822-smart-supervision-r921"></script>
   </body>
 </html>

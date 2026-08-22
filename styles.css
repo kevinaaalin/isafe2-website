@@ -2224,3 +2224,29 @@ p {
     page-break-after: always;
   }
 }
+
+.field-evidence-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.field-evidence-form { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; }
+.field-evidence-list { display: grid; gap: 10px; }
+.field-evidence-row { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(150px, 1fr) minmax(120px, .7fr) auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.field-evidence-row:last-child { border-bottom: 0; }
+.field-evidence-row strong, .field-evidence-row span { display: block; overflow-wrap: anywhere; }
+.field-evidence-row small { color: var(--muted); }
+.field-evidence-row .review-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.field-evidence-row button { min-height: 36px; }
+.field-evidence-boundary { color: var(--muted); font-size: 12px; }
+@media (max-width: 780px) { .field-evidence-form { grid-template-columns: 1fr; } .field-evidence-row { grid-template-columns: 1fr; } .field-evidence-row .review-actions { justify-content: flex-start; } }
+.field-file-picker { display: grid; gap: 8px; margin-top: 16px; color: var(--muted); font-size: 13px; }
+.field-file-picker input { min-height: 46px; border: 1px dashed var(--line); background: #fff; padding: 10px; }
+.field-media-grid { display: grid; gap: 8px; margin-top: 16px; }
+.field-media-card { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; border-top: 1px solid var(--line); padding: 12px 0; }
+.field-media-card input { width: 18px; height: 18px; margin-top: 2px; }
+.field-media-card span, .field-media-card strong, .field-media-card small { display: block; min-width: 0; overflow-wrap: anywhere; }
+.field-media-card small { margin-top: 4px; color: var(--muted); }
+.construction-log { border-left: 3px solid #b7791f; padding: 4px 0 4px 12px; }
+.construction-log p { margin: 8px 0; color: var(--muted); }
+.ncr-capa-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin-top: 20px; }
+.ncr-item { border-top: 1px solid var(--line); padding: 12px 0; }
+.ncr-item p { margin: 6px 0; color: var(--muted); }
+.ncr-item small { display: block; margin-bottom: 8px; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 780px) { .ncr-capa-grid { grid-template-columns: 1fr; } }

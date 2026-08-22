@@ -1,4 +1,5 @@
 const views = {
+  fieldEvidence: "現場證據與 External Evidence Provider",
   knowledge: "TIGI Governance Knowledge",
   governance: "R9 Patent V7 Governance Objects",
   r5: "TIGI R9 / Patent V7 治理母本與 iSAFE R5.2 執行契約",
@@ -228,7 +229,7 @@ const roles = [
     memberTier: "dealer",
     caseRole: "case_coordinator",
     userId: "local-dealer",
-    allowedViews: ["overview", "gate", "projects", "passport", "knowledge", "risk", "glevel", "business"],
+    allowedViews: ["overview", "gate", "projects", "fieldEvidence", "passport", "knowledge", "risk", "glevel", "business"],
     capabilities: ["checklist_add", "baseline", "receipt", "evidence", "change_order", "message"],
   },
   {
@@ -240,7 +241,7 @@ const roles = [
     memberTier: "association",
     caseRole: "mediator",
     userId: "local-association",
-    allowedViews: ["overview", "projects", "passport", "knowledge", "risk", "glevel", "association"],
+    allowedViews: ["overview", "projects", "fieldEvidence", "passport", "knowledge", "risk", "glevel", "association"],
     capabilities: ["message"],
   },
   {
@@ -254,7 +255,7 @@ const roles = [
     caseRole: "case_designer",
     userId: "local-certified-designer",
     confirmationParty: "certified_member",
-    allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel"],
+    allowedViews: ["overview", "gate", "projects", "fieldEvidence", "passport", "risk", "glevel"],
     capabilities: ["checklist_add", "checklist_confirm", "receipt", "evidence", "change_order", "message"],
   },
   {
@@ -268,7 +269,7 @@ const roles = [
     caseRole: "case_vendor",
     userId: "local-certified-vendor",
     confirmationParty: "certified_member",
-    allowedViews: ["overview", "gate", "projects", "passport", "risk", "glevel"],
+    allowedViews: ["overview", "gate", "projects", "fieldEvidence", "passport", "risk", "glevel"],
     capabilities: ["checklist_add", "checklist_confirm", "receipt", "evidence", "change_order", "message"],
   },
   {
@@ -281,7 +282,7 @@ const roles = [
     caseRole: "case_owner",
     userId: "local-owner",
     confirmationParty: "owner",
-    allowedViews: ["overview", "projects", "passport"],
+    allowedViews: ["overview", "projects", "fieldEvidence", "passport"],
     capabilities: ["checklist_confirm", "evidence", "change_order", "message"],
   },
 ];
@@ -653,10 +654,127 @@ function setView(viewId) {
   }
   if (nextView === "r5") renderR5Baseline();
   if (nextView === "checklist") renderGovernanceRegistry();
+  if (nextView === "fieldEvidence") loadFieldEvidence();
   if (nextView === "knowledge") loadKnowledgeIndex();
   if (nextView === "governance") loadR9GovernanceObjects();
 }
 
+async function fieldEvidenceApi(path, { method = "GET", body } = {}) {
+  if (!apiEnabled) throw new Error("本機 API 尚未啟動");
+  const write = method !== "GET";
+  const response = await fetch(`${apiOrigin}${path}`, {
+    method,
+    headers: {
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...apiContextHeaders({ purpose: "field_evidence_management", identity: getActiveRole(), authorize: write, idempotencyKey: write ? `field-${globalThis.crypto?.randomUUID?.() || Date.now()}` : undefined }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.message || `API ${response.status}`);
+  return payload;
+}
+
+function fieldValue(id) { return qs(`#${id}`)?.value.trim() || ""; }
+function setFieldEvidenceStatus(message, error = false) { const target = qs("#fieldEvidenceStatus"); if (target) { target.textContent = message; target.classList.toggle("warning", error); } }
+
+function renderFieldRequirements(requirements) {
+  const target = qs("#fieldRequirementList"); if (!target) return;
+  target.innerHTML = requirements.length ? `<div class="field-evidence-list">${requirements.map((item) => `<div class="field-evidence-row"><div><strong>${escapeHtml(item.requirement_id)}</strong><small>${escapeHtml(item.description || "未填說明")}</small></div><div><span>${escapeHtml(item.step_id)}</span><small>${escapeHtml(item.evidence_type)}</small></div><div><span>${item.required_flag ? "必要" : "選配"}</span><small>${escapeHtml(item.status)}</small></div><span class="field-evidence-boundary">${escapeHtml(item.requirement_version)}</span></div>`).join("")}</div>` : '<p class="empty-state">尚未建立需求。</p>';
+}
+
+function renderFieldPackages(packages) {
+  const target = qs("#fieldPackageList"); if (!target) return;
+  target.innerHTML = packages.length ? `<div class="field-evidence-list">${packages.map((item) => `<div class="field-evidence-row"><div><strong>${escapeHtml(item.payload?.caption || item.media_id)}</strong><small>${escapeHtml(item.object_ref)}</small></div><div><span>${escapeHtml(item.step_id)} · ${escapeHtml(item.evidence_type)}</span><small>${escapeHtml(item.provider_id)} · revision ${item.payload?.package_revision || 1} · SHA ${escapeHtml(item.content_sha256.slice(0, 12))}</small><small>${escapeHtml(item.payload?.mapping_reason || "人工上傳")}</small></div><div><span>${escapeHtml(item.status)}</span><small>${escapeHtml(item.review_reason || "待人工覆核")}</small></div><div class="review-actions">${item.status === "pending_review" ? `<button class="secondary-action" type="button" data-field-review="accepted" data-package-id="${escapeHtml(item.package_id)}">接受</button><button class="secondary-action" type="button" data-field-review="correction_required" data-package-id="${escapeHtml(item.package_id)}">補正</button><button class="secondary-action" type="button" data-field-review="rejected" data-package-id="${escapeHtml(item.package_id)}">退回</button>` : '<span class="field-evidence-boundary">已完成覆核</span>'}</div></div>`).join("")}</div>` : '<p class="empty-state">尚無 Evidence Package。</p>';
+  qsa("[data-field-review]", target).forEach((button) => button.addEventListener("click", () => reviewFieldPackage(button.dataset.packageId, button.dataset.fieldReview)));
+}
+
+async function loadFieldEvidence() {
+  const dueDate = qs("#fieldNcrDueDate"); if (dueDate && !dueDate.value) { const next = new Date(); next.setDate(next.getDate() + 7); dueDate.value = next.toISOString().slice(0, 10); }
+  const projectId = fieldValue("fieldProjectId") || "project-field-local";
+  setFieldEvidenceStatus("載入中");
+  try {
+    const [requirements, packages, media, logs, ncr, capa] = await Promise.all([
+      fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(projectId)}/evidence-requirements`),
+      fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(projectId)}/evidence-packages`),
+      fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(projectId)}/field-media`),
+      fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(projectId)}/construction-logs`),
+    ]);
+    renderFieldRequirements(requirements.requirements || []); renderFieldPackages(packages.packages || []); renderFieldMedia(media.media || []); renderConstructionLogs(logs.logs || []); renderFieldNcr(ncr.ncr || []); renderFieldCapa(capa.capa || []);
+    setFieldEvidenceStatus(`${media.media?.length || 0} media · ${packages.packages?.length || 0} packages`);
+  } catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+
+async function createFieldRequirement() {
+  const projectId = fieldValue("fieldProjectId");
+  try {
+    await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(projectId)}/evidence-requirements`, { method: "POST", body: { requirement_id: fieldValue("fieldRequirementId"), step_id: fieldValue("fieldStepId"), evidence_type: fieldValue("fieldEvidenceType"), required_flag: true, requirement_version: "R9.2.1-1", description: fieldValue("fieldRequirementDescription") } });
+    await loadFieldEvidence();
+  } catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+
+async function registerFieldProvider() {
+  try { await fieldEvidenceApi("/api/v1/isafe/external-evidence-providers", { method: "POST", body: { provider_id: "provider-local-smart-site", name: "本機智慧監工 Provider", provider_type: "smart_site_saas" } }); setFieldEvidenceStatus("本機 Provider 已登記"); }
+  catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+
+async function submitManualFieldEvidence() {
+  const projectId = fieldValue("fieldProjectId");
+  try {
+    await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(projectId)}/evidence-packages/manual`, { method: "POST", body: { requirement_id: fieldValue("fieldRequirementId"), step_id: fieldValue("fieldStepId"), evidence_type: fieldValue("fieldEvidenceType"), media_id: fieldValue("fieldMediaId"), object_ref: fieldValue("fieldObjectRef"), content: `${fieldValue("fieldMediaId")}:${fieldValue("fieldObjectRef")}`, classification: { project: projectId, space: fieldValue("fieldSpace"), trade: fieldValue("fieldTrade"), stage: fieldValue("fieldStage"), event_type: fieldValue("fieldEventType") }, caption: fieldValue("fieldCaption"), confidence: 1, human_review: { status: "pending", source: "manual_upload" } } });
+    await loadFieldEvidence();
+  } catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+
+async function reviewFieldPackage(packageId, decision) {
+  try { await fieldEvidenceApi(`/api/v1/isafe/evidence-packages/${encodeURIComponent(packageId)}/review`, { method: "POST", body: { decision, reason: decision === "accepted" ? "授權角色已人工核對來源與需求對應" : "請依覆核結果補正" } }); await loadFieldEvidence(); }
+  catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+function selectedFieldMediaIds() { return qsa("[data-field-media-select]:checked").map((input) => input.value); }
+function renderFieldMedia(media) {
+  const target = qs("#fieldMediaList"); if (!target) return;
+  target.innerHTML = media.length ? `<div class="field-media-grid">${media.map((item) => `<div class="field-media-card"><input type="checkbox" data-field-media-select value="${escapeHtml(item.media_id)}" checked /><span><strong>${escapeHtml(item.original_filename)}</strong><small>${escapeHtml(item.space_label)} · ${escapeHtml(item.trade_label)} · ${escapeHtml(item.stage_label)} · ${escapeHtml(item.event_type)}</small><small>revision ${item.current_revision || 1} · ${escapeHtml(item.classification_status)} · 信心 ${Math.round(Number(item.confidence) * 100)}%</small><small>${escapeHtml(item.site_id || "site-local-default")} · ${escapeHtml(item.source_system || "local")} · ${escapeHtml(item.model_name || "manual")}/${escapeHtml(item.model_version || "-")}</small></span><button class="secondary-action" type="button" data-field-correct="${escapeHtml(item.media_id)}">套用左側五維欄位校正</button></div>`).join("")}</div>` : '<p class="empty-state">尚未匯入現場媒體。</p>';
+  qsa("[data-field-correct]", target).forEach((button) => button.addEventListener("click", () => correctFieldMedia(button.dataset.fieldCorrect)));
+}
+function renderConstructionLogs(logs) {
+  const target = qs("#fieldLogList"); if (!target) return;
+  target.innerHTML = logs.length ? `<div class="field-evidence-list">${logs.map((item) => `<div class="construction-log"><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.summary)}</p><small>${escapeHtml(item.status)} · SHA ${escapeHtml(item.checksum.slice(0,12))}</small></div>`).join("")}</div>` : '<p class="empty-state">尚未產生日誌。</p>';
+}
+function renderFieldNcr(items) {
+  const target=qs("#fieldNcrList"); if(!target)return; target.innerHTML=items.length?`<div class="field-evidence-list">${items.map((item)=>`<div class="ncr-item"><strong>${escapeHtml(item.defect_type)} · ${escapeHtml(item.severity)}</strong><p>${escapeHtml(item.description)}</p><small>${escapeHtml(item.ncr_id)} · ${escapeHtml(item.status)} · media revision ${item.media_revision}</small><div class="review-actions">${item.status==="candidate"?`<button class="secondary-action" data-ncr-review="confirmed" data-ncr-id="${escapeHtml(item.ncr_id)}">人工確認</button><button class="secondary-action" data-ncr-review="rejected" data-ncr-id="${escapeHtml(item.ncr_id)}">排除</button>`:item.status==="confirmed"?`<button class="primary-action" data-capa-create="${escapeHtml(item.ncr_id)}">建立 CAPA</button>`:""}</div></div>`).join("")}</div>`:'<p class="empty-state">尚無候選缺失。</p>';
+  qsa("[data-ncr-review]",target).forEach((button)=>button.addEventListener("click",()=>reviewFieldNcr(button.dataset.ncrId,button.dataset.ncrReview))); qsa("[data-capa-create]",target).forEach((button)=>button.addEventListener("click",()=>createFieldCapa(button.dataset.capaCreate)));
+}
+function renderFieldCapa(items) {
+  const target=qs("#fieldCapaList"); if(!target)return;
+  target.innerHTML=items.length?items.map((item)=>`<div class="ncr-item"><strong>${escapeHtml(item.capa_id)}</strong><p>${escapeHtml(item.corrective_action)}</p><small>${escapeHtml(item.status)} · ${escapeHtml(item.responsible_party)} · ${escapeHtml(item.due_date)} · ${item.verification_media_refs?.length || 0} verification media</small><div class="review-actions">${item.status==="draft"?`<button class="secondary-action" data-capa-progress="${escapeHtml(item.capa_id)}">開始改善</button>`:""}${item.status==="in_progress"?`<button class="secondary-action" data-capa-verify="${escapeHtml(item.capa_id)}">選取照片送複驗</button>`:""}${item.status==="ready_for_verification"?`<button class="primary-action" data-capa-close="${escapeHtml(item.capa_id)}">授權結案</button>`:""}</div></div>`).join(""):'<p class="empty-state">尚無 CAPA。</p>';
+  qsa("[data-capa-progress]",target).forEach((button)=>button.addEventListener("click",()=>updateFieldCapa(button.dataset.capaProgress,"in_progress")));
+  qsa("[data-capa-verify]",target).forEach((button)=>button.addEventListener("click",()=>updateFieldCapa(button.dataset.capaVerify,"ready_for_verification",selectedFieldMediaIds())));
+  qsa("[data-capa-close]",target).forEach((button)=>button.addEventListener("click",()=>closeFieldCapa(button.dataset.capaClose)));
+}
+async function detectFieldDefects(){ const media_ids=selectedFieldMediaIds(); if(!media_ids.length)return setFieldEvidenceStatus("請先選擇缺失照片",true); try{await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(fieldValue("fieldProjectId"))}/ncr-candidates`,{method:"POST",body:{media_ids,severity:fieldValue("fieldNcrSeverity"),responsible_party:fieldValue("fieldNcrResponsible"),due_date:fieldValue("fieldNcrDueDate")}});await loadFieldEvidence()}catch(error){setFieldEvidenceStatus(error.message,true)} }
+async function reviewFieldNcr(ncrId,decision){try{await fieldEvidenceApi(`/api/v1/isafe/ncr-candidates/${encodeURIComponent(ncrId)}/review`,{method:"POST",body:{decision,responsible_party:fieldValue("fieldNcrResponsible"),due_date:fieldValue("fieldNcrDueDate"),reason:"授權角色人工核對現場媒體"}});await loadFieldEvidence()}catch(error){setFieldEvidenceStatus(error.message,true)} }
+async function createFieldCapa(ncrId){try{await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(fieldValue("fieldProjectId"))}/capa`,{method:"POST",body:{ncr_id:ncrId,corrective_action:fieldValue("fieldCorrectiveAction"),responsible_party:fieldValue("fieldNcrResponsible"),due_date:fieldValue("fieldNcrDueDate")}});await loadFieldEvidence()}catch(error){setFieldEvidenceStatus(error.message,true)} }
+async function updateFieldCapa(capaId,status,verification_media_refs=[]){try{await fieldEvidenceApi(`/api/v1/isafe/capa/${encodeURIComponent(capaId)}`,{method:"POST",body:{status,verification_media_refs,reason:"授權角色更新改善進度"}});await loadFieldEvidence()}catch(error){setFieldEvidenceStatus(error.message,true)} }
+async function closeFieldCapa(capaId){try{await fieldEvidenceApi(`/api/v1/isafe/capa/${encodeURIComponent(capaId)}/close`,{method:"POST",body:{reason:"授權角色已核對改善照片與 accepted Evidence Package"}});await loadFieldEvidence()}catch(error){setFieldEvidenceStatus(error.message,true)} }
+function readFieldFile(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file); }); }
+async function batchCaptureFieldMedia() {
+  const files = [...(qs("#fieldMediaFiles")?.files || [])]; if (!files.length) return setFieldEvidenceStatus("請先選擇現場照片或影片", true);
+  try { setFieldEvidenceStatus(`匯入 ${files.length} 個檔案中`); const assets = await Promise.all(files.map(async (file) => ({ original_filename: file.name, mime_type: file.type, bytes: file.size, data_url: await readFieldFile(file), caption: fieldValue("fieldCaption"), classification: { project: fieldValue("fieldProjectId"), space: fieldValue("fieldSpace"), trade: fieldValue("fieldTrade"), stage: fieldValue("fieldStage"), event_type: fieldValue("fieldEventType") } }))); await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(fieldValue("fieldProjectId"))}/field-media`, { method: "POST", body: { assets } }); await loadFieldEvidence(); }
+  catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+async function correctFieldMedia(mediaId) {
+  try { await fieldEvidenceApi(`/api/v1/isafe/field-media/${encodeURIComponent(mediaId)}/corrections`, { method: "POST", body: { reason: fieldValue("fieldCorrectionReason"), caption: fieldValue("fieldCaption"), classification: { project: fieldValue("fieldProjectId"), space: fieldValue("fieldSpace"), trade: fieldValue("fieldTrade"), stage: fieldValue("fieldStage"), event_type: fieldValue("fieldEventType") } } }); await loadFieldEvidence(); }
+  catch (error) { setFieldEvidenceStatus(error.message, true); }
+}async function mapSelectedFieldMedia() {
+  const media_ids = selectedFieldMediaIds(); if (!media_ids.length) return setFieldEvidenceStatus("請選擇至少一筆現場媒體", true);
+  try { await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(fieldValue("fieldProjectId"))}/field-media:map`, { method: "POST", body: { media_ids, requirement_id: fieldValue("fieldRequirementId"), step_id: fieldValue("fieldStepId"), evidence_type: fieldValue("fieldEvidenceType") } }); await loadFieldEvidence(); }
+  catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
+async function generateFieldConstructionLog() {
+  const media_ids = selectedFieldMediaIds(); if (!media_ids.length) return setFieldEvidenceStatus("請選擇至少一筆現場媒體", true);
+  try { await fieldEvidenceApi(`/api/v1/isafe/projects/${encodeURIComponent(fieldValue("fieldProjectId"))}/construction-logs`, { method: "POST", body: { media_ids } }); await loadFieldEvidence(); }
+  catch (error) { setFieldEvidenceStatus(error.message, true); }
+}
 let governanceKnowledgeIndex = null;
 let governanceKnowledgeError = null;
 
@@ -710,7 +828,7 @@ async function queryGovernanceKnowledge() {
   resultTarget.innerHTML = results.length
     ? results.map((result) => `
         <article class="knowledge-result">
-          <div class="knowledge-result-meta"><span>${escapeHtml(result.categoryLabel || result.category || "TIGI")}</span><span>relevance ${result.score}</span></div>
+          <div class="knowledge-result-meta"><span>${escapeHtml(result.categoryLabel || result.category || "TIGI")}</span><span>${result.baselineStatus === "candidate-addendum" ? "R9.2.1 候選增補" : "R9.2 活動來源"}</span><span>relevance ${result.score}</span></div>
           <h3>${escapeHtml(result.title)}</h3>
           <p class="knowledge-heading">${escapeHtml(result.heading || "")}</p>
           <p>${escapeHtml(result.text || "").slice(0, 520)}${String(result.text || "").length > 520 ? "..." : ""}</p>
@@ -1798,6 +1916,22 @@ async function init() {
   const printBtn = qs("#printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
 
+  const fieldRefresh = qs("#fieldRefresh");
+  if (fieldRefresh) fieldRefresh.addEventListener("click", loadFieldEvidence);
+  const fieldCreateRequirement = qs("#fieldCreateRequirement");
+  if (fieldCreateRequirement) fieldCreateRequirement.addEventListener("click", createFieldRequirement);
+  const fieldRegisterProvider = qs("#fieldRegisterProvider");
+  if (fieldRegisterProvider) fieldRegisterProvider.addEventListener("click", registerFieldProvider);
+  const fieldDetectDefects = qs("#fieldDetectDefects");
+  if (fieldDetectDefects) fieldDetectDefects.addEventListener("click", detectFieldDefects);
+  const fieldBatchCapture = qs("#fieldBatchCapture");
+  if (fieldBatchCapture) fieldBatchCapture.addEventListener("click", batchCaptureFieldMedia);
+  const fieldMapMedia = qs("#fieldMapMedia");
+  if (fieldMapMedia) fieldMapMedia.addEventListener("click", mapSelectedFieldMedia);
+  const fieldGenerateLog = qs("#fieldGenerateLog");
+  if (fieldGenerateLog) fieldGenerateLog.addEventListener("click", generateFieldConstructionLog);
+  const fieldManualSubmit = qs("#fieldManualSubmit");
+  if (fieldManualSubmit) fieldManualSubmit.addEventListener("click", submitManualFieldEvidence);
   const knowledgeSearchBtn = qs("#knowledgeSearchBtn");
   if (knowledgeSearchBtn) knowledgeSearchBtn.addEventListener("click", queryGovernanceKnowledge);
 

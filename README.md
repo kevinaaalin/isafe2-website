@@ -72,3 +72,7 @@ After uploading to GitHub:
 3. Choose `Deploy from a branch`.
 4. Select the `main` branch and `/root`.
 5. Save, then wait for GitHub Pages to publish the site.
+
+## R9.2.1 Field Evidence and Smart Supervision
+
+The local iSAFE view `?view=fieldEvidence` provides Evidence Requirement management, manual fallback, batch field media, provenance/revisions, five-dimensional candidate classification, Evidence Mapping, construction logs and NCR/CAPA review. CAPA closure requires accepted verification Evidence and an authorized role. See `docs/tigi-r9.2.1-field-evidence-local-implementation-20260822.md` and `docs/adr-20260822-r9.2.1-field-evidence-boundary.md`.
