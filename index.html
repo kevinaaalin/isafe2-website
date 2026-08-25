@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>iSAFE 2.0 | 產業數位治理工作台</title>
-    <link rel="stylesheet" href="styles.css?v=20260822-field-evidence-r921" />
+    <link rel="stylesheet" href="styles.css?v=20260826-independent-change-governance" />
   </head>
   <body>
     <div class="app-shell">
@@ -18,9 +18,17 @@
         </div>
 
         <nav class="nav-list" aria-label="主要功能">
-          <button class="nav-item active" data-view="overview" type="button">
+          <button class="nav-item active" data-view="home" type="button">
+            <span class="nav-icon" aria-hidden="true">iS</span>
+            <span>系統首頁</span>
+          </button>
+          <button class="nav-item" data-view="workbench" type="button">
             <span class="nav-icon" aria-hidden="true">⌂</span>
-            <span>治理總覽</span>
+            <span>我的工作台</span>
+          </button>
+          <button class="nav-item" data-view="help" type="button">
+            <span class="nav-icon" aria-hidden="true">?</span>
+            <span>使用說明</span>
           </button>
           <button class="nav-item" data-view="gate" type="button">
             <span class="nav-icon" aria-hidden="true">◆</span>
@@ -28,7 +36,7 @@
           </button>
           <button class="nav-item" data-view="projects" type="button">
             <span class="nav-icon" aria-hidden="true">▥</span>
-            <span>監管專案</span>
+            <span>我的案件</span>
           </button>
           <button class="nav-item" data-view="r5" type="button">
             <span class="nav-icon" aria-hidden="true">R9</span>
@@ -48,8 +56,9 @@
           </button>
           <button class="nav-item" data-view="fieldEvidence" type="button">
             <span class="nav-icon" aria-hidden="true">▧</span>
-            <span>現場證據</span>
-          </button>          <button class="nav-item" data-view="knowledge" type="button">
+            <span>照片與現場紀錄</span>
+          </button>
+          <button class="nav-item" data-view="knowledge" type="button">
             <span class="nav-icon" aria-hidden="true">⌕</span>
             <span>可信知識</span>
           </button>
@@ -68,10 +77,6 @@
           <button class="nav-item" data-view="architecture" type="button">
             <span class="nav-icon" aria-hidden="true">⌬</span>
             <span>技術架構</span>
-          </button>
-          <button class="nav-item" data-view="sbir" type="button">
-            <span class="nav-icon" aria-hidden="true">▤</span>
-            <span>研發計畫</span>
           </button>
           <button class="nav-item" data-view="business" type="button">
             <span class="nav-icon" aria-hidden="true">₿</span>
@@ -92,12 +97,156 @@
             <h1 id="view-title">台灣室內裝修產業治理基礎設施</h1>
           </div>
           <div class="topbar-actions">
+            <label class="global-role-control" for="globalRoleSelect">
+              <span>目前身分</span>
+              <select id="globalRoleSelect" aria-label="切換目前身分"></select>
+            </label>
             <button class="icon-button" id="printBtn" type="button" title="列印目前畫面" aria-label="列印目前畫面">⎙</button>
             <button class="primary-action" id="demoCycleBtn" type="button">案件推進</button>
           </div>
         </header>
 
-        <section class="view active" id="overview" aria-labelledby="overview-title">
+        <section class="view active" id="home" aria-labelledby="home-title">
+          <div class="isafe-home-hero">
+            <div class="isafe-home-copy">
+              <p class="section-kicker">iSAFE 2.0 Governance Workspace</p>
+              <h2 id="home-title">讓設計與工程的每一步，都有雙方確認與不可變紀錄</h2>
+              <p>iSAFE 2.0 管理設計、施工、驗收、付款與現場證據。每一階段完成雙方逐項勾稽與付款確認後即永久鎖定，才能進入下一階段。</p>
+              <div class="isafe-home-actions"><button class="primary-action" id="startDirectIntakeBtn" type="button">直接申請立案</button><button class="secondary-action" data-open-view="help" type="button">了解使用方式</button></div>
+            </div>
+            <div class="isafe-home-principles" aria-label="核心治理原則">
+              <div><strong>雙方勾稽</strong><span>業主與認證會員分別確認</span></div>
+              <div><strong>階段凍結</strong><span>完成後不得返回修改</span></div>
+              <div><strong>證據可追溯</strong><span>照片、文件、付款與版本留痕</span></div>
+            </div>
+          </div>
+
+          <div class="home-explainer-grid">
+            <article><span>01</span><h3>選擇案件模式</h3><p>純設計、直接工程，或設計加工程，依實際需求開始。</p></article>
+            <article><span>02</span><h3>完成立案審查</h3><p>填寫案件基本資料，建立 INTAKE_pending 申請，等待治理權限受理。</p></article>
+            <article><span>03</span><h3>進入案件工作台</h3><p>依目前階段執行檢核、證據、付款與雙方確認。</p></article>
+          </div>
+
+          <section class="direct-intake-panel" id="directIntakePanel" hidden aria-labelledby="direct-intake-title">
+            <div class="section-head"><div><p class="section-kicker">Direct Intake</p><h2 id="direct-intake-title">直接申請 iSAFE 立案</h2><p>送出後建立待受理案件，並進入該案件管理介面。</p></div><button class="icon-button" id="closeDirectIntakeBtn" type="button" aria-label="關閉申請表">×</button></div>
+            <form id="directIntakeForm" class="direct-intake-form">
+              <label>申請人姓名<input name="applicant_name" required maxlength="80" autocomplete="name" /></label>
+              <label>聯絡電話<input name="phone" required maxlength="30" autocomplete="tel" inputmode="tel" /></label>
+              <label>Email<input name="email" required type="email" maxlength="120" autocomplete="email" /></label>
+              <label>案件名稱<input name="title" required maxlength="120" placeholder="例如：板橋住宅裝修治理" /></label>
+              <label class="wide">案件地址<input name="site_address" required maxlength="200" autocomplete="street-address" /></label>
+              <label>案件模式<select name="case_mode" required><option value="">請選擇</option><option value="design_only">只需要設計</option><option value="construction_only">直接進入工程</option><option value="design_build">設計＋工程</option></select></label>
+              <label>預計坪數<input name="floor_area_ping" type="number" min="1" max="10000" step="0.1" /></label>
+              <label class="wide">案件需求說明<textarea name="case_description" required maxlength="1500" rows="4" placeholder="請說明目前已有資料、預計工程與希望監管的範圍"></textarea></label>
+              <label class="direct-intake-consent wide"><input name="consent" type="checkbox" required /><span>我同意將以上資料用於 iSAFE 立案審查與案件治理聯繫。</span></label>
+              <div class="direct-intake-actions wide"><span id="directIntakeStatus" role="status" aria-live="polite"></span><button class="primary-action" id="submitDirectIntakeBtn" type="submit">送出並進入案件</button></div>
+            </form>
+          </section>
+        </section>
+
+        <section class="view" id="workbench" aria-labelledby="workbench-title">
+          <div class="workbench-intro">
+            <div>
+              <p class="section-kicker">My Project Workspace</p>
+              <h2 id="workbench-title">今天要處理什麼？</h2>
+              <p>從案件待辦開始，設計、工程與治理紀錄會依你的身分自動整理。</p>
+            </div>
+            <button class="primary-action" id="openCaseCreatorBtn" type="button">＋ 建立新案件</button>
+          </div>
+
+          <section class="case-creator" id="caseCreator" hidden aria-labelledby="case-creator-title">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">New Case</p>
+                <h2 id="case-creator-title">這次需要哪一種服務？</h2>
+              </div>
+              <button class="icon-button" id="closeCaseCreatorBtn" type="button" aria-label="關閉建立案件" title="關閉">×</button>
+            </div>
+            <div class="case-mode-grid" role="radiogroup" aria-label="案件執行模式">
+              <button class="case-mode-option" data-case-mode="design_only" type="button" role="radio" aria-checked="false">
+                <span class="mode-number">01</span><strong>只需要設計</strong><small>風格、平面配置、圖面與設計確認，不進入施工。</small>
+              </button>
+              <button class="case-mode-option" data-case-mode="construction_only" type="button" role="radio" aria-checked="false">
+                <span class="mode-number">02</span><strong>直接進入工程</strong><small>單項或簡易工程，或已備妥可施工圖面。</small>
+              </button>
+              <button class="case-mode-option" data-case-mode="design_build" type="button" role="radio" aria-checked="false">
+                <span class="mode-number">03</span><strong>設計＋工程</strong><small>從需求、設計定案一路治理到施工與驗收。</small>
+              </button>
+            </div>
+            <div class="case-mode-result" id="caseModeResult" aria-live="polite">請先選擇案件模式。</div>
+            <div class="case-creator-actions">
+              <button class="secondary-action" id="cancelCaseCreatorBtn" type="button">取消</button>
+              <button class="primary-action" id="previewCaseFlowBtn" type="button" disabled>查看此流程</button>
+            </div>
+          </section>
+
+          <div class="workbench-grid">
+            <section class="workbench-main" aria-labelledby="active-projects-title">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">Active Projects</p>
+                  <h2 id="active-projects-title">進行中的案件</h2>
+                </div>
+                <span class="status-pill" id="workbenchCaseCount">0 件</span>
+              </div>
+              <div class="workbench-projects" id="workbenchProjects"></div>
+            </section>
+
+            <aside class="workbench-side" aria-labelledby="today-tasks-title">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker">My Tasks</p>
+                  <h2 id="today-tasks-title">待你處理</h2>
+                </div>
+                <span class="task-count" id="workbenchTaskCount">0</span>
+              </div>
+              <div class="workbench-tasks" id="workbenchTasks"></div>
+            </aside>
+          </div>
+
+          <section class="workbench-quick" aria-labelledby="quick-actions-title">
+            <div>
+              <p class="section-kicker">Quick Access</p>
+              <h2 id="quick-actions-title">常用功能</h2>
+            </div>
+            <div class="quick-action-list">
+              <button type="button" data-open-view="fieldEvidence"><span aria-hidden="true">▧</span><strong>上傳現場照片</strong><small>建立證據與施工日誌</small></button>
+              <button type="button" data-open-view="projects"><span aria-hidden="true">▦</span><strong>執行檢核表</strong><small>確認目前階段工作</small></button>
+              <button type="button" data-open-view="passport"><span aria-hidden="true">▣</span><strong>查看文件紀錄</strong><small>合約、付款與歷程</small></button>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="help" aria-labelledby="help-title">
+          <div class="section-head help-heading">
+            <div>
+              <p class="section-kicker">Local User Guide</p>
+              <h2 id="help-title">iSAFE 2.0 選單使用說明</h2>
+              <p>先從工作台與案件待辦開始；治理、評分與技術頁面用於查閱，不會因瀏覽或 AI 建議直接改變 Gate、付款或 R5.2 狀態。</p>
+            </div>
+            <a class="secondary-action guide-file-link" href="docs/isafe2-menu-user-guide.md" target="_blank" rel="noreferrer">開啟完整說明檔</a>
+          </div>
+          <div class="guide-list">
+            <article><span>01</span><div><strong>我的工作台</strong><p>查看本人案件、目前階段、待辦及常用操作。不同會員等級只顯示獲准功能。</p></div></article>
+            <article><span>02</span><div><strong>關卡狀態機</strong><p>查看 D1-D5 設計與 C1-C5 工程 Gate；狀態推進須有必要證據及授權角色確認。</p></div></article>
+            <article><span>03</span><div><strong>我的案件</strong><p>進入案件基本資料、執行清單、文件圖片、合約付款、追加減工程及留言歷程。</p></div></article>
+            <article><span>04</span><div><strong>R8／R5.2 契約</strong><p>查閱技術母本、執行契約、Canonical ID 與 Gate／付款治理邊界。</p></div></article>
+            <article><span>05</span><div><strong>案件治理護照</strong><p>彙整案件版本、證據鏈、簽認、付款資格與稽核軌跡，供授權角色查驗。</p></div></article>
+            <article><span>06</span><div><strong>治理 Registry</strong><p>「治理名稱說明」列出九類治理代碼；其餘頁籤提供 DGM、DGI 與 GS 登錄資料。</p></div></article>
+            <article><span>07</span><div><strong>R9 治理物件</strong><p>查閱 Risk、Trigger、Audit 與 External Evaluation 等治理物件及來源版本。</p></div></article>
+            <article><span>08</span><div><strong>照片與現場紀錄</strong><p>施工照片由認證工程會員上傳；系統保留原始檔、修訂、分類、施工日誌與 NCR/CAPA。</p></div></article>
+            <article><span>09</span><div><strong>可信知識</strong><p>使用本機 Knowledge／RAG 查詢技術文件，結果附來源連結與版本標籤。</p></div></article>
+            <article><span>10</span><div><strong>AI 風險評分</strong><p>顯示候選風險與建議；未經規則版本及人工授權核定，不是正式決策。</p></div></article>
+            <article><span>11</span><div><strong>治理評級</strong><p>查看案件、設計師或工程商的治理成熟度與已核准評級紀錄。</p></div></article>
+            <article><span>12</span><div><strong>公會治理中心</strong><p>供公會角色處理爭議、調處、抽查與評鑑，不開放一般會員使用。</p></div></article>
+          </div>
+          <div class="responsibility-note">
+            <strong>上傳責任</strong>
+            <span>施工照片：認證工程會員上傳。付款證明：業主上傳。付款名稱：依合約記載的階段工程名稱，於該階段完工驗收時提出付款證明。</span>
+          </div>
+        </section>
+
+        <section class="view" id="overview" aria-labelledby="overview-title">
           <div class="status-strip">
             <article class="metric">
               <span class="metric-label">治理案件</span>
@@ -168,7 +317,7 @@
                 <li>iSAFE 必須與 TWCID 媒合平台架構性脫鉤。</li>
                 <li>公會不是通路，而是產業治理中心共同推動者。</li>
                 <li>Gate 狀態、PGP 與風險提示形成可稽核資料；正式 RiskScore 另需授權核定。</li>
-                <li>Checklist 與 Evidence Engine 補齊 SBIR V2.1 技術深度。</li>
+                <li>Checklist 與 Evidence Engine 支援雙方勾稽及不可變證據鏈。</li>
                 <li>G-Level 與 Governance Credit 承接商業化價值。</li>
               </ul>
             </article>
@@ -412,10 +561,10 @@
               </div>
               <div class="registry-toolbar">
                 <div class="registry-tabs" role="tablist" aria-label="治理 Registry">
-                  <button class="active" data-registry="dgm" type="button">DGM 24</button>
+                  <button class="active" data-registry="namespaces" type="button">治理名稱說明</button>
+                  <button data-registry="dgm" type="button">DGM 24</button>
                   <button data-registry="dgi" type="button">DGI 411</button>
                   <button data-registry="gs" type="button">GS 30</button>
-                  <button data-registry="namespaces" type="button">命名空間 9</button>
                 </div>
                 <label class="registry-search">
                   <span>搜尋 Registry</span>
@@ -524,7 +673,7 @@
                   <p class="section-kicker">System Architecture</p>
                   <h2 id="architecture-title">目標架構（To-Be）：前後端分離與 AI 混合雲</h2>
                 </div>
-                <span class="status-pill">SBIR V2.1</span>
+                <span class="status-pill">R9.2.1 技術基線</span>
               </div>
               <div class="tech-stack">
                 <div><strong>Next.js / React</strong><span>會員端、業主端、總部與公會儀表板</span></div>
@@ -558,62 +707,6 @@
           </div>
         </section>
 
-        <section class="view" id="sbir" aria-labelledby="sbir-title">
-          <div class="layout-grid">
-            <article class="surface span-12">
-              <div class="section-head">
-                <div>
-                  <p class="section-kicker">SBIR V2.1</p>
-                  <h2 id="sbir-title">九大研發引擎與驗收指標</h2>
-                </div>
-                <span class="status-pill">12 個月 MVP</span>
-              </div>
-              <div class="engine-grid">
-                <div>State Machine Engine</div>
-                <div>Gate Governance Engine</div>
-                <div>Checklist Engine</div>
-                <div>Evidence Engine</div>
-                <div>PGP Engine</div>
-                <div>RiskScore Engine</div>
-                <div>Governance Credit Engine</div>
-                <div>AI Governance Assistant</div>
-                <div>Multi-Agent Governance</div>
-              </div>
-            </article>
-            <article class="surface span-7">
-              <p class="section-kicker">KPI</p>
-              <h2>計畫執行期驗收目標</h2>
-              <div class="kpi-table">
-                <div class="kpi-row header"><span>分類</span><span>指標</span><span>目標</span></div>
-                <div class="kpi-row"><span>技術</span><span>Gate / 狀態機完備度</span><span>&gt;85%</span></div>
-                <div class="kpi-row"><span>治理</span><span>PGP 護照生成率</span><span>100%</span></div>
-                <div class="kpi-row"><span>AI</span><span>Risk Alert Recall</span><span>≥0.75</span></div>
-                <div class="kpi-row"><span>落地</span><span>AAA 認證會員</span><span>≥50 家</span></div>
-              </div>
-            </article>
-            <article class="surface span-5">
-              <p class="section-kicker">IP Strategy</p>
-              <h2>專利與營業秘密</h2>
-              <ul class="check-list">
-                <li>延伸既有專利 I670676。</li>
-                <li>申請 RiskScore 動態算分相關專利。</li>
-                <li>Evidence Engine 影像存證與查驗工作台。</li>
-                <li>StyleMatch embedding、YOLOv8 模型與 Agent prompt 作為營業秘密。</li>
-              </ul>
-            </article>
-            <article class="surface span-12">
-              <p class="section-kicker">Roadmap</p>
-              <h2>12 個月研發時程</h2>
-              <div class="roadmap-strip">
-                <div><strong>M1-M2</strong><span>需求、資料結構、API 規格</span></div>
-                <div><strong>M3-M4</strong><span>Gate、Checklist、Evidence 開發</span></div>
-                <div><strong>M5-M6</strong><span>PGP、RiskScore、治理儀表板</span></div>
-                <div><strong>M7-M8</strong><span>StyleMatch AI 與 AI 監工整合</span></div>
-                <div><strong>M9-M12</strong><span>試點導入、KPI 驗證、商業化準備</span></div>
-              </div>
-            </article>
-          </div>
-        </section>
 
         <section class="view" id="r5" aria-labelledby="r5-title">
           <div class="layout-grid">
@@ -702,7 +795,9 @@
             <article class="surface span-7"><p class="section-kicker">Evidence Requirement</p><h2>目前需求</h2><div id="fieldRequirementList"><p class="empty-state">尚未建立需求。</p></div></article>
             <article class="surface span-12"><div class="section-head"><div><p class="section-kicker">Human Review Queue</p><h2>Evidence Package 覆核佇列</h2></div><span class="status-pill">不觸發治理狀態</span></div><div id="fieldPackageList"><p class="empty-state">尚無 Evidence Package。</p></div></article>
           </div>
-        </section>        <section class="view" id="knowledge" aria-labelledby="knowledge-title">
+        </section>
+
+        <section class="view" id="knowledge" aria-labelledby="knowledge-title">
           <div class="layout-grid">
             <article class="surface span-12">
               <div class="section-head">
@@ -743,6 +838,6 @@
         </section>
       </main>
     </div>
-    <script src="app.js?v=20260822-smart-supervision-r921"></script>
+    <script src="app.js?v=20260826-independent-change-governance"></script>
   </body>
 </html>

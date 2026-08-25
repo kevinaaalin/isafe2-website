@@ -1,6 +1,6 @@
 # iSAFE 2.0 R9 / Patent V7 Governance Website
 
-This is a static website prototype for iSAFE 2.0, focused on renovation governance, state-machine workflows, evidence management, SBIR planning, and investor-facing positioning.
+This is a static website prototype for iSAFE 2.0, focused on renovation governance, state-machine workflows, evidence management, direct intake, and role-based project operations.
 
 Current document master: `20260814_R9_Patent_V7`.
 
@@ -76,3 +76,8 @@ After uploading to GitHub:
 ## R9.2.1 Field Evidence and Smart Supervision
 
 The local iSAFE view `?view=fieldEvidence` provides Evidence Requirement management, manual fallback, batch field media, provenance/revisions, five-dimensional candidate classification, Evidence Mapping, construction logs and NCR/CAPA review. CAPA closure requires accepted verification Evidence and an authorized role. See `docs/tigi-r9.2.1-field-evidence-local-implementation-20260822.md` and `docs/adr-20260822-r9.2.1-field-evidence-boundary.md`.
+
+
+## 使用說明
+
+- [iSAFE 2.0 選單使用說明](docs/isafe2-menu-user-guide.md)

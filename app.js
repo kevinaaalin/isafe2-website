@@ -1,4 +1,7 @@
 const views = {
+  home: "iSAFE 2.0 設計與工程治理系統",
+  workbench: "我的案件工作台",
+  help: "iSAFE 2.0 使用說明",
   fieldEvidence: "現場證據與 External Evidence Provider",
   knowledge: "TIGI Governance Knowledge",
   governance: "R9 Patent V7 Governance Objects",
@@ -12,7 +15,6 @@ const views = {
   glevel: "治理成熟度與 G-Level",
   association: "公會治理中心",
   architecture: "技術架構與 API",
-  sbir: "SBIR V2.1 研發計畫",
   business: "商業模式與投資人版本",
 };
 
@@ -155,11 +157,11 @@ let gates = [
   { id: "D3", key: "D3_basic_design_finalization", name: "基本設計規劃定案", text: "完成色彩、天花、水電、燈光、建材與預算定案。" },
   { id: "D4", key: "D4_elevation_design_finalization", name: "立面設計定案", text: "完成各空間立面、材質與設計成果確認。" },
   { id: "D5", key: "D5_construction_detail_agreements", name: "施工大樣及其他約定事項", text: "完成施工大樣、材質表、標單與完整施工圖說。" },
-  { id: "C1", key: "C1_construction_preparation", name: "前置作業", text: "確認工程契約、圖說、材料、費用與付款檢核。" },
-  { id: "C2", key: "C2_phase_one_construction", name: "第一期工程施工", text: "執行第一期工項、檢核、驗收與進度證據。" },
-  { id: "C3", key: "C3_phase_two_construction", name: "第二期工程施工", text: "執行第二期工項、追加減、檢核與驗收。" },
-  { id: "C4", key: "C4_phase_three_construction", name: "第三期工程施工", text: "執行第三期工項、完工與交屋前檢核。" },
-  { id: "C5", key: "C5_warranty_aftercare", name: "保固修繕及售後服務", text: "管理交屋、保固、修繕與售後服務紀錄。" },
+  { id: "C1", key: "C1_construction_preparation", name: "前置作業", text: "確認工程契約、圖說、材料、費用與付款檢核；追加減可於 C1-C5 任一工程階段提出。" },
+  { id: "C2", key: "C2_phase_one_construction", name: "第一期工程施工", text: "執行第一期工項、檢核、驗收與進度證據；如有追加減須於本階段登錄。" },
+  { id: "C3", key: "C3_phase_two_construction", name: "第二期工程施工", text: "執行第二期工項、檢核與驗收；如有追加減須於本階段登錄。" },
+  { id: "C4", key: "C4_phase_three_construction", name: "第三期工程施工", text: "執行第三期工項、完工與交屋前檢核；如有追加減須於本階段登錄。" },
+  { id: "C5", key: "C5_warranty_aftercare", name: "保固修繕及售後服務", text: "管理交屋、保固、修繕與售後服務紀錄；如有追加減須於本階段登錄。" },
 ];
 
 const gateRules = [
@@ -218,7 +220,7 @@ const roles = [
     caseRole: "reviewer",
     userId: "local-headquarter",
     allowedViews: Object.keys(views),
-    capabilities: ["checklist_add", "baseline", "receipt", "evidence", "change_order", "message"],
+    capabilities: ["checklist_add", "baseline", "evidence", "change_order", "message"],
   },
   {
     id: "dealer",
@@ -230,7 +232,7 @@ const roles = [
     caseRole: "case_coordinator",
     userId: "local-dealer",
     allowedViews: ["overview", "gate", "projects", "fieldEvidence", "passport", "knowledge", "risk", "glevel", "business"],
-    capabilities: ["checklist_add", "baseline", "receipt", "evidence", "change_order", "message"],
+    capabilities: ["checklist_add", "baseline", "evidence", "change_order", "message"],
   },
   {
     id: "association",
@@ -256,7 +258,7 @@ const roles = [
     userId: "local-certified-designer",
     confirmationParty: "certified_member",
     allowedViews: ["overview", "gate", "projects", "fieldEvidence", "passport", "risk", "glevel"],
-    capabilities: ["checklist_add", "checklist_confirm", "receipt", "evidence", "change_order", "message"],
+    capabilities: ["checklist_add", "checklist_confirm", "evidence", "change_order", "message"],
   },
   {
     id: "certified_vendor",
@@ -270,7 +272,7 @@ const roles = [
     userId: "local-certified-vendor",
     confirmationParty: "certified_member",
     allowedViews: ["overview", "gate", "projects", "fieldEvidence", "passport", "risk", "glevel"],
-    capabilities: ["checklist_add", "checklist_confirm", "receipt", "evidence", "change_order", "message"],
+    capabilities: ["checklist_add", "checklist_confirm", "evidence", "change_order", "message"],
   },
   {
     id: "general_member",
@@ -282,10 +284,16 @@ const roles = [
     caseRole: "case_owner",
     userId: "local-owner",
     confirmationParty: "owner",
-    allowedViews: ["overview", "projects", "fieldEvidence", "passport"],
-    capabilities: ["checklist_confirm", "evidence", "change_order", "message"],
+    allowedViews: ["overview", "projects", "passport"],
+    capabilities: ["checklist_confirm", "receipt", "change_order", "message"],
   },
 ];
+
+roles.forEach((role) => {
+  if (!role.allowedViews.includes("home")) role.allowedViews.unshift("home");
+  if (!role.allowedViews.includes("workbench")) role.allowedViews.unshift("workbench");
+  if (!role.allowedViews.includes("help")) role.allowedViews.push("help");
+});
 
 let projectCases = [
   {
@@ -293,6 +301,16 @@ let projectCases = [
     title: "SM-2026-0002 iSAFE 監管專案",
     sourceCase: "SM-2026-0002",
     source: "StyleMatchAI",
+    caseMode: "design_build",
+    siteAddress: "台北市信義區（展示資料）",
+    siteType: "中古住宅",
+    floorAreaPing: 28,
+    ownerPhone: "09**-***-168",
+    vendor: "尚未指派認證工程會員",
+    contractRef: "IS-CONTRACT-2026-0001",
+    contractScope: "室內設計、木作、水電與完工驗收",
+    plannedStartDate: "2026-09-15",
+    plannedCompletionDate: "2027-01-20",
     stage: "D1_design_preparation",
     gate: "D1_pending",
     status: "Active",
@@ -307,6 +325,16 @@ let projectCases = [
     title: "SM-2026-0003 iSAFE 監管專案",
     sourceCase: "SM-2026-0003",
     source: "StyleMatchAI",
+    caseMode: "design_only",
+    siteAddress: "新北市板橋區（展示資料）",
+    siteType: "新成屋",
+    floorAreaPing: 22,
+    ownerPhone: "09**-***-526",
+    vendor: "不適用（純設計案件）",
+    contractRef: "IS-DESIGN-2026-0002",
+    contractScope: "平面配置、基本設計、立面與施工圖說交付",
+    plannedStartDate: "2026-08-30",
+    plannedCompletionDate: "2026-11-15",
     stage: "D3_basic_design_finalization",
     gate: "D3_review",
     status: "Active",
@@ -323,7 +351,8 @@ let currentGate = 2;
 let activeRole = "headquarter";
 let activeCaseId = "IS-2026-0001";
 let legacyWorkspace = null;
-let activeLegacyTab = "planning";
+let selectedCaseMode = "";
+let activeLegacyTab = "case";
 let legacyStageFilter = null;
 let legacyFallbackContract = null;
 let legacyReadOnly = false;
@@ -334,7 +363,7 @@ let governanceRegistry = {
   gs: gsRegistry,
   namespaces: namespaceRegistry,
 };
-let activeRegistry = "dgm";
+let activeRegistry = "namespaces";
 let registrySearch = "";
 
 projectCases = projectCases.map((item, index) => ({
@@ -386,6 +415,182 @@ function getActiveCase() {
   return projectCases.find((item) => item.id === activeCaseId) || projectCases[0];
 }
 
+const caseModeMeta = {
+  design_only: {
+    label: "純設計",
+    flow: "需求確認 → 設計提案 → 圖面定案 → 設計交付",
+    note: "完成設計成果與交付紀錄後結案，不建立施工階段。",
+  },
+  construction_only: {
+    label: "直接工程",
+    flow: "圖面／範圍確認 → 報價與契約 → 施工查驗 → 驗收結案",
+    note: "適用單項、簡易工程或已有可施工圖面的案件。",
+  },
+  design_build: {
+    label: "設計＋工程",
+    flow: "需求確認 → 設計定案 → 工程契約 → 施工查驗 → 驗收結案",
+    note: "設計成果經確認後，才建立工程階段與施工治理紀錄。",
+  },
+};
+
+function getCaseMode(project, index = 0) {
+  if (project.caseMode && caseModeMeta[project.caseMode]) return project.caseMode;
+  if (String(project.stage || "").startsWith("C")) return "construction_only";
+  return index === 0 ? "design_build" : "design_only";
+}
+
+function getCaseGates(project) {
+  const mode = getCaseMode(project, Math.max(0, projectCases.findIndex((item) => item.id === project?.id)));
+  if (mode === "design_only") return gates.filter((gate) => gate.id.startsWith("D"));
+  if (mode === "construction_only") return gates.filter((gate) => gate.id.startsWith("C"));
+  return gates;
+}
+
+function isCaseStage(project, stageKey) {
+  return getCaseGates(project).some((gate) => gate.key === stageKey);
+}
+
+function getWorkbenchTasks(role, project) {
+  const common = [
+    { label: "確認目前階段待辦", detail: `${project.id} · ${String(project.stage || "D1").split("_")[0]}`, view: "projects" },
+  ];
+  const roleTasks = {
+    headquarter: [
+      { label: "覆核案件 Gate 與必要證據", detail: "2 件待確認", view: "projects" },
+      { label: "查看現場缺失與改善期限", detail: "1 件需追蹤", view: "fieldEvidence" },
+    ],
+    dealer: [
+      { label: "催補設計確認文件", detail: "今天到期", view: "projects" },
+      { label: "檢查代理案件進度", detail: "2 件進行中", view: "projects" },
+    ],
+    association: [
+      { label: "查看爭議與調處紀錄", detail: "無逾期案件", view: "association" },
+      { label: "抽查案件治理護照", detail: "本週 2 件", view: "passport" },
+    ],
+    certified_designer: [
+      { label: "上傳設計圖面修訂", detail: "D3 定案前", view: "projects" },
+      { label: "回覆業主設計確認", detail: "1 則新留言", view: "projects" },
+    ],
+    certified_vendor: [
+      { label: "上傳今日施工照片", detail: "建立不可變原始紀錄", view: "fieldEvidence" },
+      { label: "提交工項查驗結果", detail: "1 個工項待完成", view: "projects" },
+    ],
+    general_member: [
+      { label: "確認設計需求與範圍", detail: "需要你的確認", view: "projects" },
+      { label: "查看最新圖面與留言", detail: "1 份新文件", view: "passport" },
+    ],
+  };
+  return [...common, ...(roleTasks[role.id] || roleTasks.general_member)];
+}
+
+function renderGlobalRoleSelect() {
+  const select = qs("#globalRoleSelect");
+  if (!select) return;
+  select.innerHTML = roles
+    .map((role) => `<option value="${role.id}" ${role.id === activeRole ? "selected" : ""}>${role.label}</option>`)
+    .join("");
+  select.onchange = async (event) => {
+    activeRole = event.target.value;
+    legacyWorkspace = null;
+    legacyStageFilter = null;
+    const currentView = qs(".view.active")?.id || "workbench";
+    setView(currentView);
+    renderProjectWorkspace();
+    await loadLegacyWorkspace();
+  };
+}
+
+function renderWorkbench() {
+  const project = getActiveCase();
+  const role = getActiveRole();
+  if (!project) return;
+  renderGlobalRoleSelect();
+  setText("#workbenchCaseCount", `${projectCases.length} 件`);
+
+  const projectsTarget = qs("#workbenchProjects");
+  if (projectsTarget) {
+    projectsTarget.innerHTML = projectCases.map((item, index) => {
+      const mode = getCaseMode(item, index);
+      const modeMeta = caseModeMeta[mode];
+      const gateId = String(item.stage || "D1").split("_")[0];
+      const gate = gates.find((entry) => entry.id === gateId);
+      const gateIndex = Math.max(0, gates.findIndex((entry) => entry.id === gateId));
+      const progress = Math.max(12, Math.min(96, Math.round(((gateIndex + 1) / gates.length) * 100)));
+      return `
+        <article class="workbench-project ${item.id === activeCaseId ? "current" : ""}">
+          <div class="project-card-head">
+            <div><span class="case-mode-tag ${mode}">${modeMeta.label}</span><strong>${escapeHtml(item.title)}</strong></div>
+            <span class="project-id">${escapeHtml(item.id)}</span>
+          </div>
+          <div class="project-stage-row"><span>目前階段</span><strong>${escapeHtml(gate ? `${gate.id} ${gate.name}` : item.stage)}</strong></div>
+          <div class="project-progress" aria-label="案件進度 ${progress}%"><span style="width:${progress}%"></span></div>
+          <div class="project-card-footer">
+            <small>${escapeHtml(item.designer || "尚未指派設計師")} · ${escapeHtml(item.agency || "直營案件")}</small>
+            <button class="secondary-action" type="button" data-continue-case="${escapeHtml(item.id)}">繼續處理 →</button>
+          </div>
+        </article>`;
+    }).join("");
+    qsa("[data-continue-case]", projectsTarget).forEach((button) => {
+      button.addEventListener("click", async () => {
+        activeCaseId = button.dataset.continueCase;
+        legacyWorkspace = null;
+        legacyStageFilter = null;
+        renderProjectWorkspace();
+        setView("projects");
+        await loadLegacyWorkspace();
+      });
+    });
+  }
+
+  const tasks = getWorkbenchTasks(role, project);
+  setText("#workbenchTaskCount", tasks.length);
+  const tasksTarget = qs("#workbenchTasks");
+  if (tasksTarget) {
+    tasksTarget.innerHTML = tasks.map((task, index) => `
+      <button type="button" data-task-view="${task.view}">
+        <span class="task-status ${index === 0 ? "urgent" : ""}" aria-hidden="true"></span>
+        <span><strong>${escapeHtml(task.label)}</strong><small>${escapeHtml(task.detail)}</small></span>
+        <span aria-hidden="true">›</span>
+      </button>`).join("");
+    qsa("[data-task-view]", tasksTarget).forEach((button) => button.addEventListener("click", () => setView(button.dataset.taskView)));
+  }
+}
+
+function setupWorkbench() {
+  const creator = qs("#caseCreator");
+  const openCreator = () => {
+    if (!creator) return;
+    creator.hidden = false;
+    creator.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const closeCreator = () => {
+    if (!creator) return;
+    creator.hidden = true;
+  };
+  qs("#openCaseCreatorBtn")?.addEventListener("click", openCreator);
+  qs("#closeCaseCreatorBtn")?.addEventListener("click", closeCreator);
+  qs("#cancelCaseCreatorBtn")?.addEventListener("click", closeCreator);
+
+  qsa("[data-case-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedCaseMode = button.dataset.caseMode;
+      qsa("[data-case-mode]").forEach((option) => {
+        const selected = option.dataset.caseMode === selectedCaseMode;
+        option.classList.toggle("selected", selected);
+        option.setAttribute("aria-checked", String(selected));
+      });
+      const meta = caseModeMeta[selectedCaseMode];
+      qs("#caseModeResult").innerHTML = `<strong>${meta.label}</strong><span>${meta.flow}</span><small>${meta.note}</small>`;
+      qs("#previewCaseFlowBtn").disabled = false;
+    });
+  });
+  qs("#previewCaseFlowBtn")?.addEventListener("click", () => {
+    if (!selectedCaseMode) return;
+    const meta = caseModeMeta[selectedCaseMode];
+    qs("#caseModeResult").innerHTML = `<strong>展示流程：${meta.label}</strong><span>${meta.flow}</span><small>正式建立時才會產生案件 ID；此展示不寫入治理狀態。</small>`;
+  });
+  qsa("[data-open-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset.openView)));
+}
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -509,9 +714,14 @@ function createReadOnlyLegacyWorkspace(project) {
     ...item,
     milestone_id: `preview-${item.code}`,
     amount: 0,
-    status: "preview",
+    status: "pending",
     due_at: null,
     receipt_id: null,
+    stage_locked: currentStageIndex >= 0 && gates.findIndex((gate) => gate.key === item.stage) < currentStageIndex,
+    confirmations: {
+      certified_member: { status: "pending", version: 1 },
+      owner: { status: "pending", version: 1 },
+    },
   }));
   return {
     read_only: true,
@@ -546,6 +756,13 @@ function createReadOnlyLegacyWorkspace(project) {
       created_at: "2026-07-23T00:00:00+08:00",
     }],
     milestones,
+    execution_checklist_baseline: {
+      status: "draft",
+      certified_member_confirmed_at: null,
+      owner_confirmed_at: null,
+      frozen_at: null,
+      version: 1,
+    },
     receipts: [],
     change_orders: [],
     messages: [],
@@ -569,6 +786,16 @@ async function loadProjectCases() {
       sourceCase: item.source_case_code,
       source: item.source || "StyleMatchAI",
       stage: item.current_stage,
+      caseMode: item.case_mode || item.execution_mode,
+      siteAddress: item.site_address,
+      siteType: item.site_type,
+      floorAreaPing: item.floor_area_ping,
+      ownerPhone: item.owner_phone,
+      vendor: item.vendor || item.certified_vendor,
+      contractRef: item.contract_ref,
+      contractScope: item.contract_scope,
+      plannedStartDate: item.planned_start_date,
+      plannedCompletionDate: item.planned_completion_date,
       gate: item.gate_status,
       status: item.status === "active" ? "Active" : item.status,
       risk: item.risk_score,
@@ -635,9 +862,10 @@ function updateNavigationAccess() {
 
 function setView(viewId) {
   const role = getActiveRole();
-  const requestedView = views[viewId] ? viewId : "overview";
+  const requestedView = views[viewId] ? viewId : "workbench";
   const nextView = role.allowedViews.includes(requestedView) ? requestedView : role.allowedViews[0];
   updateNavigationAccess();
+  document.body.classList.toggle("public-home", nextView === "home");
 
   qsa(".nav-item").forEach((button) => {
     button.classList.toggle("active", button.dataset.view === nextView);
@@ -648,6 +876,10 @@ function setView(viewId) {
   });
 
   setText("#view-title", views[nextView]);
+  if (nextView === "home") renderGlobalRoleSelect();
+  if (nextView === "workbench") renderWorkbench();
+  const advanceButton = qs("#demoCycleBtn");
+  if (advanceButton) advanceButton.hidden = nextView !== "projects" || !["headquarter", "dealer"].includes(role.memberTier);
   if (nextView === "projects") {
     renderProjectWorkspace();
     loadLegacyWorkspace();
@@ -657,6 +889,50 @@ function setView(viewId) {
   if (nextView === "fieldEvidence") loadFieldEvidence();
   if (nextView === "knowledge") loadKnowledgeIndex();
   if (nextView === "governance") loadR9GovernanceObjects();
+}
+
+function setupDirectIntake() {
+  const panel = qs("#directIntakePanel");
+  const form = qs("#directIntakeForm");
+  const status = qs("#directIntakeStatus");
+  const open = () => { panel.hidden = false; panel.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  qs("#startDirectIntakeBtn")?.addEventListener("click", open);
+  qs("#closeDirectIntakeBtn")?.addEventListener("click", () => { panel.hidden = true; });
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = qs("#submitDirectIntakeBtn");
+    const data = new FormData(form);
+    const ownerIdentity = roles.find((item) => item.id === "general_member");
+    const payload = {
+      title: String(data.get("title") || "").trim(),
+      applicant_name: String(data.get("applicant_name") || "").trim(),
+      contact: `${String(data.get("phone") || "").trim()} / ${String(data.get("email") || "").trim()}`,
+      phone: String(data.get("phone") || "").trim(),
+      email: String(data.get("email") || "").trim(),
+      site_address: String(data.get("site_address") || "").trim(),
+      case_mode: String(data.get("case_mode") || ""),
+      floor_area_ping: Number(data.get("floor_area_ping")) || null,
+      case_description: String(data.get("case_description") || "").trim(),
+      consent_at: new Date().toISOString(),
+    };
+    button.disabled = true; status.textContent = "正在建立待受理案件..."; status.classList.remove("error");
+    try {
+      if (!apiEnabled) throw new Error("本機 iSAFE API 尚未啟動，請先啟動 4180 服務。");
+      const response = await fetch(`${apiOrigin}/api/v1/isafe/direct-intakes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...apiContextHeaders({ purpose: "isafe_direct_intake", idempotencyKey: `web-intake-${globalThis.crypto?.randomUUID?.() || Date.now()}`, authorize: true, identity: ownerIdentity }) },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || `API ${response.status}`);
+      status.textContent = `立案申請完成：${result.case.isafe_case_id}，正在進入案件工作台。`;
+      await loadProjectCases();
+      activeCaseId = result.case.isafe_case_id;
+      const url = new URL(window.location.href); url.searchParams.set("view", "projects"); url.searchParams.set("case", activeCaseId); window.history.replaceState({}, "", url);
+      renderProjectWorkspace(); setView("projects"); await loadLegacyWorkspace();
+    } catch (error) { status.textContent = `送出失敗：${error.message}`; status.classList.add("error"); }
+    finally { button.disabled = false; }
+  });
 }
 
 async function fieldEvidenceApi(path, { method = "GET", body } = {}) {
@@ -923,9 +1199,13 @@ function renderGateMachine() {
   const target = qs("#gateMachine");
   if (!target) return;
 
-  target.innerHTML = gates
-    .map((gate, index) => {
-      const state = index < currentGate ? "done" : index === currentGate ? "current" : "locked";
+  const project = getActiveCase();
+  const visibleGates = getCaseGates(project);
+  const activeGlobalIndex = gates.findIndex((gate) => gate.key === project?.stage);
+  target.innerHTML = visibleGates
+    .map((gate) => {
+      const gateGlobalIndex = gates.findIndex((item) => item.key === gate.key);
+      const state = gateGlobalIndex < activeGlobalIndex ? "done" : gateGlobalIndex === activeGlobalIndex ? "current" : "locked";
       return `
         <div class="gate-node ${state}">
           <strong>${gate.id} ${gate.name}</strong>
@@ -1015,9 +1295,13 @@ function renderProjectGateMachine() {
   const target = qs("#projectGateMachine");
   if (!target) return;
 
-  target.innerHTML = gates
-    .map((gate, index) => {
-      const state = index < currentGate ? "done" : index === currentGate ? "current" : "locked";
+  const project = getActiveCase();
+  const visibleGates = getCaseGates(project);
+  const activeGlobalIndex = gates.findIndex((gate) => gate.key === project?.stage);
+  target.innerHTML = visibleGates
+    .map((gate) => {
+      const gateGlobalIndex = gates.findIndex((item) => item.key === gate.key);
+      const state = gateGlobalIndex < activeGlobalIndex ? "done" : gateGlobalIndex === activeGlobalIndex ? "current" : "locked";
       return `
         <div class="gate-node ${state}">
           <strong>${gate.id} ${gate.name}</strong>
@@ -1153,10 +1437,10 @@ const registryConfigurations = {
     ],
   },
   namespaces: {
-    description: "跨文件與系統統一使用九類 Registry 命名空間。",
+    description: "治理名稱說明：跨文件與系統統一使用九類 Registry 名稱、代碼及用途。",
     columns: [
-      ["registry_id", "命名空間"],
-      ["scope", "治理範圍"],
+      ["registry_id", "治理代碼"],
+      ["scope", "治理名稱與用途"],
       ["status", "狀態"],
     ],
   },
@@ -1256,7 +1540,7 @@ function renderProjectWorkspace() {
   setText("#projectStatus", project.status);
   setText("#roleTitle", role.title);
   const advanceButton = qs("#demoCycleBtn");
-  if (advanceButton) advanceButton.hidden = !["headquarter", "dealer"].includes(role.memberTier);
+  if (advanceButton) advanceButton.hidden = qs(".view.active")?.id !== "projects" || !["headquarter", "dealer"].includes(role.memberTier);
 
   renderCaseSelect();
   renderRoleSwitcher();
@@ -1307,11 +1591,12 @@ function renderProjectWorkspace() {
 }
 
 const legacyTabs = [
+  ["case", "案件基本資料"],
   ["planning", "執行前確認"],
   ["checklist", "逐項檢核"],
   ["evidence", "文件與圖片"],
-  ["finance", "合約與付款"],
-  ["changes", "追加工程"],
+  ["finance", "付款證明"],
+  ["changes", "追加減工程"],
   ["messages", "留言與歷程"],
 ];
 
@@ -1383,6 +1668,7 @@ function renderLegacyWorkspace() {
       ${label}
     </button>
   `).join("");
+  if (activeLegacyTab === "case") panel.innerHTML = renderCaseBasicPanel();
   if (activeLegacyTab === "planning") panel.innerHTML = renderPlanningPanel();
   if (activeLegacyTab === "checklist") panel.innerHTML = renderChecklistPanel();
   if (activeLegacyTab === "evidence") panel.innerHTML = renderEvidencePanel();
@@ -1391,12 +1677,11 @@ function renderLegacyWorkspace() {
   if (activeLegacyTab === "messages") panel.innerHTML = renderMessagePanel();
   if (legacyReadOnly) {
     panel.insertAdjacentHTML("afterbegin", `<div class="read-only-banner"><strong>GitHub Pages 靜態唯讀預覽</strong><span>完整寫入、檔案與稽核功能需連接受保護的 iSAFE API。</span></div>`);
-    qsa("form input, form textarea, form select, form button, .checklist-confirmation", panel).forEach((control) => {
+    qsa("form input, form textarea, form select, form button, .checklist-confirmation, .payment-confirmation-action, .integrated-payment-confirmation", panel).forEach((control) => {
       control.disabled = true;
     });
   }
   const formCapabilities = {
-    addChecklistForm: "checklist_add",
     evidenceUploadForm: "evidence",
     baselineForm: "baseline",
     receiptForm: "receipt",
@@ -1413,17 +1698,61 @@ function renderLegacyWorkspace() {
   bindLegacyActions();
 }
 
+function renderCaseBasicPanel() {
+  const project = getActiveCase();
+  const projectIndex = Math.max(0, projectCases.findIndex((item) => item.id === project.id));
+  const mode = caseModeMeta[getCaseMode(project, projectIndex)];
+  const baseline = legacyWorkspace.baseline || {};
+  const value = (input, suffix = "") => input === undefined || input === null || input === "" ? "尚未填寫" : `${input}${suffix}`;
+  const details = [
+    ["案件編號", project.id],
+    ["案件名稱", project.title],
+    ["執行模式", mode.label],
+    ["目前階段", stageLabel(project.stage)],
+    ["案件狀態", project.status],
+    ["案場地址", value(project.siteAddress)],
+    ["空間類型", value(project.siteType)],
+    ["施作面積", value(project.floorAreaPing, project.floorAreaPing ? " 坪" : "")],
+    ["業主", value(project.owner)],
+    ["業主聯絡電話", value(project.ownerPhone)],
+    ["認證設計師", value(project.designer)],
+    ["認證工程會員", value(project.vendor)],
+    ["代理／管理單位", value(project.agency)],
+    ["合約編號", value(baseline.contract_ref || project.contractRef)],
+    ["合約工程範圍", value(project.contractScope)],
+    ["預定開始日期", value(project.plannedStartDate)],
+    ["預定完成日期", value(project.plannedCompletionDate)],
+    ["來源案件", value(project.sourceCase)],
+  ];
+  return `
+    <div class="case-basic-intro">
+      <div><p class="section-kicker">Case Profile</p><h3>案件基本資料</h3></div>
+      <span class="status-pill">${escapeHtml(mode.label)}</span>
+    </div>
+    <div class="case-basic-grid">
+      ${details.map(([label, detail]) => `<div><span>${label}</span><strong>${escapeHtml(detail)}</strong></div>`).join("")}
+    </div>
+    <div class="responsibility-note compact">
+      <strong>案件責任分工</strong>
+      <span>施工照片由認證工程會員上傳；付款證明由業主上傳。追加減工程可於 C1-C5 任一工程階段提出，並記錄發生階段、金額、工期與原因。</span>
+    </div>
+  `;
+}
+
 function renderPlanningPanel() {
   const role = getActiveRole();
   const baseline = legacyWorkspace.execution_checklist_baseline || { status: "draft" };
   const frozen = baseline.status === "frozen";
+  const project = getActiveCase();
+  const visibleGates = getCaseGates(project);
+  const mode = getCaseMode(project, Math.max(0, projectCases.findIndex((item) => item.id === project.id)));
   const phases = [
-    ["design", "第一階段：設計", gates.filter((gate) => gate.id.startsWith("D"))],
-    ["construction", "第二階段：施工", gates.filter((gate) => gate.id.startsWith("C"))],
-  ];
+    ["design", mode === "design_only" ? "純設計執行階段" : "第一階段：設計", visibleGates.filter((gate) => gate.id.startsWith("D"))],
+    ["construction", mode === "construction_only" ? "直接工程執行階段" : "第二階段：施工", visibleGates.filter((gate) => gate.id.startsWith("C"))],
+  ].filter(([, , phaseGates]) => phaseGates.length);
   return `
     <div class="baseline-version-banner">
-      <strong>兩階段執行檢核基準 · ${frozen ? "已確認凍結" : "草稿編修中"}</strong>
+      <strong>${escapeHtml(caseModeMeta[mode].label)}執行檢核基準 · ${frozen ? "已確認凍結" : "草稿編修中"}</strong>
       <span>執行前可新增、刪除、修改項目名稱與內容；設計師／廠商及業主雙方確認後，凍結為後續「逐項檢核」的正式清單。</span>
     </div>
     ${phases.map(([phase, title, phaseGates]) => `
@@ -1453,172 +1782,69 @@ function renderPlanningPanel() {
 }
 
 function renderChecklistPanel() {
-  const items = legacyWorkspace.checklist.filter((item) => item.stage === legacyStageFilter);
-  const completed = items.filter((item) => (item.aggregate_status || item.status) === "completed").length;
+  const project = getActiveCase();
+  const currentStage = gates.some((gate) => gate.key === project.stage) ? project.stage : gates[0].key;
+  legacyStageFilter = currentStage;
+  const items = legacyWorkspace.checklist.filter((item) => item.stage === currentStage);
+  const completed = items.filter((item) => new Set(["completed", "not_applicable"]).has(item.aggregate_status || item.status)).length;
   const role = getActiveRole();
-  const statusOptions = (status) => `
-    <option value="pending" ${status === "pending" ? "selected" : ""}>待確認</option>
-    <option value="completed" ${status === "completed" ? "selected" : ""}>已確認</option>
-    <option value="exception" ${status === "exception" ? "selected" : ""}>異常</option>
-    <option value="not_applicable" ${status === "not_applicable" ? "selected" : ""}>不適用</option>
-  `;
-  return `
-    <div class="operations-toolbar">
-      <label>監管階段
-        <select id="legacyStageSelect">
-          ${gates.map((gate) => `<option value="${gate.key}" ${gate.key === legacyStageFilter ? "selected" : ""}>${gate.id} ${escapeHtml(gate.name)}</option>`).join("")}
-        </select>
-      </label>
-      <div class="progress-copy"><strong>${completed}/${items.length}</strong><span>本階段完成</span></div>
-      <div class="progress-track" aria-label="本階段檢核進度"><span style="width:${items.length ? Math.round(completed / items.length * 100) : 0}%"></span></div>
-    </div>
-    <div class="confirmation-legend">
-      <span><b>認證會員</b> 設計師或工程商</span>
-      <span><b>業主</b> 一般會員的案件角色</span>
-      <span><b>完成階段</b> 自動鎖定</span>
-    </div>
-    <div class="checklist-execution">
-      ${items.map((item) => `
-        <div class="execution-row status-${item.aggregate_status || item.status} ${item.stage_locked ? "is-locked" : ""}">
-          <span class="execution-marker" aria-hidden="true">${(item.aggregate_status || item.status) === "completed" ? "✓" : (item.aggregate_status || item.status) === "exception" ? "!" : (item.aggregate_status || item.status) === "not_applicable" ? "−" : ""}</span>
-          <div class="execution-copy">
-            <strong>${escapeHtml(item.label)}</strong>
-            <small>${item.source === "case_custom" ? "案件自訂" : "TWCID 舊站基線"}${item.stage_locked ? " · 階段已鎖定" : ""}</small>
-          </div>
-          ${["certified_member", "owner"].map((party) => {
-            const confirmation = item.confirmations?.[party] || { status: "pending", version: 1 };
-            const partyLabel = party === "certified_member" ? "認證會員" : "業主";
-            const editable = canUse("checklist_confirm") && role.confirmationParty === party && !item.stage_locked && !legacyReadOnly;
-            return `<label class="party-confirmation">
-              <span>${partyLabel}</span>
-              <select class="checklist-confirmation" data-checklist-id="${item.checklist_item_id}" data-party="${party}" data-version="${confirmation.version || 1}" aria-label="${escapeHtml(item.label)} ${partyLabel}狀態" ${editable ? "" : "disabled"}>
-                ${statusOptions(confirmation.status || "pending")}
-              </select>
-            </label>`;
-          }).join("")}
-        </div>
-      `).join("")}
-    </div>
-    <form class="inline-form" id="addChecklistForm" ${canUse("checklist_add") ? "" : "hidden"}>
-      <label>新增案件檢核條文<input name="label" required maxlength="160" placeholder="輸入檢核項目名稱" /></label>
-      <button class="secondary-action" type="submit">新增條文</button>
-    </form>
-  `;
+  const executionFrozen = legacyWorkspace.execution_checklist_baseline?.status === "frozen";
+  const stagePayments = legacyWorkspace.milestones.filter((item) => item.stage === currentStage);
+  const completedPayments = stagePayments.filter((item) => item.status === "completed" && item.receipt_id && ["certified_member", "owner"].every((party) => item.confirmations?.[party]?.status === "completed")).length;
+  const stageReady = executionFrozen && completed === items.length && completedPayments === stagePayments.length;
+  const statusOptions = (status) => `<option value="pending" ${status === "pending" ? "selected" : ""}>待確認</option><option value="completed" ${status === "completed" ? "selected" : ""}>已確認</option><option value="exception" ${status === "exception" ? "selected" : ""}>異常</option><option value="not_applicable" ${status === "not_applicable" ? "selected" : ""}>不適用</option>`;
+  const paymentRow = (item, isChange = false) => {
+    const certified = item.confirmations?.certified_member || { status: "pending", version: 1 };
+    const owner = item.confirmations?.owner || { status: "pending", version: 1 };
+    const party = role.confirmationParty;
+    const hasProof = isChange ? item.payment_file_name : item.receipt_id;
+    const locked = isChange ? item.locked_at : item.stage_locked;
+    const canConfirm = party && hasProof && !locked && item.confirmations?.[party]?.status !== "completed";
+    const action = isChange ? `change-orders/${encodeURIComponent(item.change_order_id)}/confirmations/${party}` : `payment-milestones/${encodeURIComponent(item.milestone_id)}/confirmations/${party}`;
+    return `<div class="execution-row payment-execution-row ${locked ? "is-locked" : ""}"><span class="execution-marker">${locked || item.status === "completed" ? "✓" : hasProof ? "•" : ""}</span><div class="execution-copy"><strong>${isChange ? `追加減：${escapeHtml(item.title)}` : escapeHtml(paymentMilestoneName(item))}</strong><small>${formatMoney(isChange ? item.amount_delta : item.amount)} · ${hasProof ? "已上傳付款證明" : "尚未上傳付款證明"}</small></div><div class="party-confirmation"><span>認證會員</span><strong>${certified.status === "completed" ? "已確認" : "待確認"}</strong></div><div class="party-confirmation"><span>業主</span><strong>${owner.status === "completed" ? "已確認" : "待確認"}</strong></div>${canConfirm ? `<button class="secondary-action integrated-payment-confirmation" data-action="${action}" data-version="${item.confirmations?.[party]?.version || 1}" type="button">確認付款檢核</button>` : ""}</div>`;
+  };
+  return `<div class="stage-readiness-banner ${stageReady ? "is-ready" : "is-blocked"}"><strong>${stageReady ? "本階段已符合凍結條件" : "尚不可進入下一階段"}</strong><span>執行基準：${executionFrozen ? "已凍結" : "未完成雙方確認"} · 勾稽：${completed}/${items.length} · 付款：${completedPayments}/${stagePayments.length}</span><small>本階段全部檢核事項與原合約付款須經雙方確認後，Gate 才能推進並永久鎖定；追加減工程採獨立治理，不改動本流程。</small></div>
+    <div class="operations-toolbar"><div class="current-stage-display"><span>案件目前階段</span><strong>${escapeHtml(stageLabel(currentStage))}</strong><small>逐項檢核依案件 Gate 自動顯示；條文只能在「執行前確認」編修。</small></div><div class="progress-copy"><strong>${completed}/${items.length}</strong><span>本階段完成</span></div><div class="progress-track"><span style="width:${items.length ? Math.round(completed / items.length * 100) : 0}%"></span></div></div>
+    <div class="confirmation-legend"><span><b>認證會員</b> 設計師或工程商</span><span><b>業主</b> 一般會員的案件角色</span><span><b>完成階段</b> 自動鎖定</span></div>
+    <div class="checklist-execution">${items.map((item) => `<div class="execution-row status-${item.aggregate_status || item.status} ${item.stage_locked ? "is-locked" : ""}"><span class="execution-marker">${(item.aggregate_status || item.status) === "completed" ? "✓" : (item.aggregate_status || item.status) === "exception" ? "!" : ""}</span><div class="execution-copy"><strong>${escapeHtml(item.label)}</strong><small>${item.source === "case_custom" ? "案件自訂" : "TWCID 舊站基線"}${item.stage_locked ? " · 階段已鎖定" : ""}</small></div>${["certified_member", "owner"].map((party) => { const confirmation = item.confirmations?.[party] || { status: "pending", version: 1 }; const editable = canUse("checklist_confirm") && role.confirmationParty === party && !item.stage_locked && !legacyReadOnly; return `<label class="party-confirmation"><span>${party === "certified_member" ? "認證會員" : "業主"}</span><select class="checklist-confirmation" data-checklist-id="${item.checklist_item_id}" data-party="${party}" data-version="${confirmation.version || 1}" ${editable ? "" : "disabled"}>${statusOptions(confirmation.status || "pending")}</select></label>`; }).join("")}</div>`).join("")}</div>
+    <section class="payment-checklist-section"><h3>本階段付款勾稽</h3>${stagePayments.length ? stagePayments.map((item) => paymentRow(item)).join("") : `<div class="empty-state">本階段沒有原合約付款檢核。</div>`}</section>`;
 }
 
 function renderEvidencePanel() {
-  return `
-    <form class="form-grid" id="evidenceUploadForm">
-      <label>證據類型
-        <select name="evidence_type">
-          <option value="project_file">專案文件</option>
-          <option value="design_contract">設計合約</option>
-          <option value="construction_contract">工程合約</option>
-          <option value="project_photo">現場照片</option>
-          <option value="drawing">設計圖說</option>
-          <option value="acceptance_record">驗收紀錄</option>
-        </select>
-      </label>
-      <label>顯示名稱<input name="label" maxlength="120" placeholder="例如：D2 現場丈量照片" /></label>
-      <label class="file-field">選擇文件或圖片<input name="file" type="file" required accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx" /></label>
-      <button class="primary-action" type="submit">上傳證據</button>
-    </form>
-    <div class="data-table evidence-table">
-      <div class="data-row header"><span>日期</span><span>類型／名稱</span><span>階段</span><span>檔案</span><span>動作</span></div>
-      ${legacyWorkspace.evidence_files.length ? legacyWorkspace.evidence_files.map((item) => `
-        <div class="data-row">
-          <span>${formatDate(item.created_at)}</span>
-          <span><strong>${escapeHtml(item.label || item.evidence_type)}</strong><small>${escapeHtml(item.evidence_type)}</small></span>
-          <span>${escapeHtml(stageLabel(item.step_key))}</span>
-          <span>${escapeHtml(item.file_name)}<small>${formatBytes(item.file_size)}</small></span>
-          <span><button class="icon-action file-download" type="button" data-kind="evidence" data-file-id="${item.evidence_id}" title="下載檔案" aria-label="下載 ${escapeHtml(item.file_name)}">↓</button></span>
-        </div>
-      `).join("") : `<div class="empty-state">尚未上傳文件或圖片。</div>`}
-    </div>
-  `;
+  const role = getActiveRole();
+  const certifiedMemberUpload = role.memberTier === "certified_member";
+  const uploadDuty = certifiedMemberUpload ? "目前身分可上傳施工照片或設計階段現場紀錄。" : "施工照片須由案件中的認證會員上傳；其他角色僅可依權限查閱。";
+  return `<div class="responsibility-note compact"><strong>文件與圖片上傳責任</strong><span>${uploadDuty} 業主的付款資料請至「付款證明」上傳該階段付款證明。</span></div>
+    <form class="form-grid" id="evidenceUploadForm" ${certifiedMemberUpload ? "" : "hidden"}><label>證據類型<select name="evidence_type"><option value="project_photo">現場照片</option><option value="project_file">專案文件</option><option value="drawing">設計圖說</option><option value="acceptance_record">驗收紀錄</option></select></label><label>顯示名稱<input name="label" maxlength="120" /></label><label class="file-field">選擇文件或圖片<input name="file" type="file" required accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx" /></label><button class="primary-action" type="submit">上傳證據</button></form>
+    <div class="data-table evidence-table"><div class="data-row header"><span>日期</span><span>類型／名稱</span><span>階段</span><span>檔案</span><span>動作</span></div>${legacyWorkspace.evidence_files.length ? legacyWorkspace.evidence_files.map((item) => `<div class="data-row"><span>${formatDate(item.created_at)}</span><span><strong>${escapeHtml(item.label || item.evidence_type)}</strong><small>${escapeHtml(item.evidence_type)}</small></span><span>${escapeHtml(stageLabel(item.step_key))}</span><span>${escapeHtml(item.file_name)}<small>${formatBytes(item.file_size)}</small></span><span><button class="icon-action file-download" type="button" data-kind="evidence" data-file-id="${item.evidence_id}" title="下載檔案">↓</button></span></div>`).join("") : `<div class="empty-state">尚未上傳文件或圖片。</div>`}</div>`;
 }
 
+function paymentMilestoneName(item) {
+  if (item.phase !== "construction") return item.label;
+  const contractStageName = item.contract_stage_name || stageLabel(item.stage).replace(/^[A-Z]\d+\s*/, "");
+  return `${contractStageName}完工驗收款`;
+}
 function renderFinancePanel() {
-  const baseline = legacyWorkspace.baseline;
-  const baselineHistory = legacyWorkspace.baseline_history || [];
-  return `
-    <div class="baseline-version-banner">
-      <strong>目前合約基線 v${baseline.current_version || 1}</strong>
-      <span>${escapeHtml(baseline.current_version_id || "尚未建立版本識別碼")} · 每次儲存均新增不可變版本</span>
-    </div>
-    <form class="form-grid finance-form" id="baselineForm">
-      <label>設計總費用<input name="design_total" type="number" min="0" step="1" value="${baseline.design_total}" /></label>
-      <label>工程總費用<input name="construction_total" type="number" min="0" step="1" value="${baseline.construction_total}" /></label>
-      <label>合約編號<input name="contract_ref" value="${escapeHtml(baseline.contract_ref || "")}" placeholder="例如：CONTRACT-2026-001" /></label>
-      <label>基線狀態
-        <select name="status"><option value="draft" ${baseline.status === "draft" ? "selected" : ""}>草稿</option><option value="approved" ${baseline.status === "approved" ? "selected" : ""}>已核准</option></select>
-      </label>
-      <label class="wide-field">版本建立原因<input name="reason" required maxlength="240" placeholder="說明本次金額、範圍或核准狀態變更原因" /></label>
-      <button class="primary-action" type="submit">建立新基線版本</button>
-    </form>
-    <div class="data-table baseline-history-table">
-      <div class="data-row header"><span>版本</span><span>建立時間／建立者</span><span>狀態與合約</span><span>金額</span><span>建立原因</span></div>
-      ${baselineHistory.map((item) => `
-        <div class="data-row">
-          <span><strong>v${item.version_no}</strong><small>${escapeHtml(item.baseline_version_id)}</small></span>
-          <span>${formatDateTime(item.created_at)}<small>${escapeHtml(item.created_by)}</small></span>
-          <span>${escapeHtml(item.status)}<small>${escapeHtml(item.contract_ref || "未填合約編號")}</small></span>
-          <span>${formatMoney(item.design_total + item.construction_total)}<small>設計 ${formatMoney(item.design_total)}／工程 ${formatMoney(item.construction_total)}</small></span>
-          <span>${escapeHtml(item.reason)}</span>
-        </div>
-      `).join("")}
-    </div>
-    <div class="milestone-grid">
-      ${legacyWorkspace.milestones.map((item) => `
-        <div class="milestone-item">
-          <span>${escapeHtml(item.phase === "design" ? "設計" : "工程")} · ${item.percentage}%</span>
-          <strong>${escapeHtml(item.label)}</strong>
-          <b>${formatMoney(item.amount)}</b>
-          <small>${escapeHtml(stageLabel(item.stage))} · ${escapeHtml(item.status)}</small>
-        </div>
-      `).join("")}
-    </div>
-    <form class="form-grid receipt-form" id="receiptForm">
-      <label>付款里程碑
-        <select name="milestone_id">${legacyWorkspace.milestones.map((item) => `<option value="${item.milestone_id}">${escapeHtml(item.label)} · ${formatMoney(item.amount)}</option>`).join("")}</select>
-      </label>
-      <label>收據標題<input name="title" required maxlength="120" placeholder="例如：設計簽約金收據" /></label>
-      <label>實付金額<input name="amount" type="number" min="0" step="1" /></label>
-      <label class="file-field">收據檔案<input name="file" type="file" accept="image/*,.pdf" /></label>
-      <button class="secondary-action" type="submit">提交付款證明</button>
-    </form>
-    <div class="compact-list">
-      ${legacyWorkspace.receipts.length ? legacyWorkspace.receipts.map((item) => `
-        <div><strong>${escapeHtml(item.title)}</strong><span>${formatMoney(item.amount)} · ${escapeHtml(item.status)} · ${formatDate(item.created_at)}</span>${item.file_name ? `<button class="icon-action file-download" data-kind="receipts" data-file-id="${item.receipt_id}" type="button" title="下載收據" aria-label="下載收據">↓</button>` : ""}</div>
-      `).join("") : `<div class="empty-state">尚無付款證明。</div>`}
-    </div>
-  `;
+  const role = getActiveRole();
+  const ownerUpload = role.id === "general_member";
+  const currentStage = getActiveCase().stage;
+  const milestones = legacyWorkspace.milestones.filter((item) => item.stage === currentStage && isCaseStage(getActiveCase(), item.stage));
+  const milestoneIds = new Set(milestones.map((item) => item.milestone_id));
+  const receipts = legacyWorkspace.receipts.filter((item) => milestoneIds.has(item.milestone_id));
+  return `<div class="responsibility-note compact"><strong>${escapeHtml(stageLabel(currentStage))}付款證明</strong><span>本頁只供業主上傳及查看原合約付款證明；雙方勾稽統一在「逐項檢核」完成。</span></div>
+    ${ownerUpload && milestones.some((item) => !item.stage_locked && !item.receipt_id) ? `<form class="form-grid receipt-form" id="receiptForm"><label>本階段應付款項<select name="milestone_id">${milestones.filter((item) => !item.stage_locked && !item.receipt_id).map((item) => `<option value="${item.milestone_id}">${escapeHtml(paymentMilestoneName(item))} · ${formatMoney(item.amount)}</option>`).join("")}</select></label><label>付款證明名稱<input name="title" required maxlength="120" /></label><label>實付金額<input name="amount" type="number" min="0" step="1" /></label><label class="file-field">付款證明檔案<input name="file" type="file" accept="image/*,.pdf" required /></label><button class="secondary-action" type="submit">上傳付款證明</button></form>` : ""}
+    <div class="proof-icon-list">${receipts.length ? receipts.map((item) => `<div class="proof-icon-item"><span class="proof-status-icon" title="已上傳付款證明">✓</span><div><strong>${escapeHtml(item.title)}</strong><small>${formatMoney(item.amount)} · ${formatDate(item.created_at)}</small></div><button class="icon-action file-download" data-kind="receipts" data-file-id="${item.receipt_id}" type="button" title="下載付款證明">↓</button></div>`).join("") : `<div class="empty-state">目前階段尚無付款證明。</div>`}</div>`;
 }
-
 function renderChangePanel() {
-  return `
-    <form class="form-grid" id="changeOrderForm">
-      <label>追加工程名稱<input name="title" required maxlength="120" placeholder="例如：客廳追加插座" /></label>
-      <label>追加金額<input name="amount_delta" type="number" step="1" value="0" /></label>
-      <label>工期增減天數<input name="schedule_delta_days" type="number" step="1" value="0" /></label>
-      <label class="wide-field">原因<textarea name="reason" required maxlength="800" placeholder="說明需求、責任與影響"></textarea></label>
-      <button class="primary-action" type="submit">提出追加工程</button>
-    </form>
-    <div class="data-table change-table">
-      <div class="data-row header"><span>日期</span><span>項目</span><span>金額</span><span>工期</span><span>狀態</span></div>
-      ${legacyWorkspace.change_orders.length ? legacyWorkspace.change_orders.map((item) => `
-        <div class="data-row">
-          <span>${formatDate(item.created_at)}</span>
-          <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.reason)}</small></span>
-          <span>${formatMoney(item.amount_delta)}</span>
-          <span>${item.schedule_delta_days >= 0 ? "+" : ""}${item.schedule_delta_days} 天</span>
-          <span>${escapeHtml(item.status)}</span>
-        </div>
-      `).join("") : `<div class="empty-state">尚無追加工程紀錄。</div>`}
-    </div>
-  `;
+  const project = getActiveCase();
+  const constructionGates = getCaseGates(project).filter((gate) => gate.id.startsWith("C"));
+  if (!constructionGates.length) return `<div class="empty-state"><strong>純設計案件不建立工程追加減。</strong></div>`;
+  const selectedStage = constructionGates.some((gate) => gate.key === project.stage) ? project.stage : constructionGates[0]?.key;
+  const role = getActiveRole();
+  return `<div class="responsibility-note compact"><strong>獨立追加減工程治理</strong><span>因應合約必要變更而獨立建立，不修改、不取代也不阻塞原階段流程與勾稽程序。每一項須具變更文件、業主付款證明及雙方確認，完成後只鎖定該追加減項目。</span></div>
+    <form class="form-grid" id="changeOrderForm"><label>發生階段<select name="stage" required>${constructionGates.map((gate) => `<option value="${gate.key}" ${gate.key === selectedStage ? "selected" : ""}>${gate.id} ${escapeHtml(gate.name)}</option>`).join("")}</select></label><label>追加減工程名稱<input name="title" required maxlength="120" /></label><label>追加減金額<input name="amount_delta" type="number" step="1" value="0" /></label><label>工期增減天數<input name="schedule_delta_days" type="number" step="1" value="0" /></label><label class="wide-field">原因<textarea name="reason" required maxlength="800"></textarea></label><label class="file-field wide-field">追加減工程文件<input name="file" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" required /></label><button class="primary-action" type="submit">建立獨立追加減項目</button></form>
+    <div class="change-order-list">${legacyWorkspace.change_orders.length ? legacyWorkspace.change_orders.map((item) => { const certified = item.confirmations?.certified_member || { status: "pending", version: 1 }; const owner = item.confirmations?.owner || { status: "pending", version: 1 }; const party = role.confirmationParty; const canConfirm = party && item.payment_file_name && !item.locked_at && item.confirmations?.[party]?.status !== "completed"; return `<article class="change-order-card ${item.locked_at ? "is-locked" : ""}"><header><div><span>${escapeHtml(stageLabel(item.stage || "未記錄"))}</span><h4>${escapeHtml(item.title)}</h4></div><strong>${item.locked_at ? "已完成並鎖定" : item.payment_file_name ? "待雙方確認" : "待付款證明"}</strong></header><p>${escapeHtml(item.reason)}</p><div class="change-order-facts"><span>${formatMoney(item.amount_delta)}</span><span>${item.schedule_delta_days >= 0 ? "+" : ""}${item.schedule_delta_days} 天</span></div><div class="change-order-files"><button class="text-action change-file-download" data-change-id="${item.change_order_id}" data-kind="document" type="button">下載變更文件</button>${item.payment_file_name ? `<button class="text-action change-file-download" data-change-id="${item.change_order_id}" data-kind="payment" type="button">下載付款證明</button>` : ""}</div>${role.id === "general_member" && !item.payment_file_name && !item.locked_at ? `<form class="change-payment-form form-grid" data-change-id="${item.change_order_id}"><label>實付金額<input name="amount" type="number" min="0" step="1" value="${Math.max(0, Number(item.amount_delta) || 0)}" /></label><label>付款證明<input name="file" type="file" accept="image/*,.pdf" required /></label><button class="secondary-action" type="submit">業主上傳付款證明</button></form>` : ""}<div class="payment-party-status"><span>認證會員：${certified.status === "completed" ? "已確認" : "待確認"}</span><span>業主：${owner.status === "completed" ? "已確認" : "待確認"}</span></div>${canConfirm ? `<button class="secondary-action change-confirmation-action" data-change-id="${item.change_order_id}" data-party="${party}" data-version="${item.confirmations?.[party]?.version || 1}" type="button">確認此追加減項目</button>` : ""}${item.locked_at ? `<small>本追加減項目已獨立凍結，不影響原流程。</small>` : ""}</article>`; }).join("") : `<div class="empty-state">尚無追加減工程紀錄。</div>`}</div>`;
 }
-
 function renderMessagePanel() {
   const project = getActiveCase();
   return `
@@ -1655,11 +1881,6 @@ function bindLegacyActions() {
       renderLegacyWorkspace();
     });
   });
-  const stageSelect = qs("#legacyStageSelect");
-  if (stageSelect) stageSelect.addEventListener("change", () => {
-    legacyStageFilter = stageSelect.value;
-    renderLegacyWorkspace();
-  });
   qsa(".checklist-confirmation").forEach((select) => select.addEventListener("change", async () => {
     await runLegacyAction(`checklist/${encodeURIComponent(select.dataset.checklistId)}/confirmations/${select.dataset.party}`, {
       status: select.value,
@@ -1667,11 +1888,6 @@ function bindLegacyActions() {
       actor: getActiveRole().userId,
     });
   }));
-  const addChecklistForm = qs("#addChecklistForm");
-  if (addChecklistForm) addChecklistForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await runLegacyAction("checklist", { stage: legacyStageFilter, label: addChecklistForm.elements.label.value, actor: "local-admin" });
-  });
   const evidenceForm = qs("#evidenceUploadForm");
   if (evidenceForm) evidenceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1684,7 +1900,7 @@ function bindLegacyActions() {
       mime_type: file.type || "application/octet-stream",
       content_base64: await fileToBase64(file),
       step_key: legacyStageFilter || getActiveCase().stage,
-      actor: "local-admin",
+      actor: getActiveRole().userId,
     });
   });
   const baselineForm = qs("#baselineForm");
@@ -1696,9 +1912,18 @@ function bindLegacyActions() {
       contract_ref: baselineForm.elements.contract_ref.value,
       status: baselineForm.elements.status.value,
       reason: baselineForm.elements.reason.value,
-      actor: "local-admin",
+      actor: getActiveRole().userId,
     });
   });
+  qsa(".integrated-payment-confirmation").forEach((button) => button.addEventListener("click", async () => {
+    await runLegacyAction(button.dataset.action, { status: "completed", expected_version: Number(button.dataset.version), actor: getActiveRole().userId });
+  }));  qsa(".payment-confirmation-action").forEach((button) => button.addEventListener("click", async () => {
+    await runLegacyAction(`payment-milestones/${encodeURIComponent(button.dataset.milestoneId)}/confirmations/${encodeURIComponent(button.dataset.party)}`, {
+      status: "completed",
+      expected_version: Number(button.dataset.version),
+      actor: getActiveRole().userId,
+    });
+  }));
   const receiptForm = qs("#receiptForm");
   if (receiptForm) receiptForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1710,27 +1935,41 @@ function bindLegacyActions() {
       file_name: file?.name || null,
       mime_type: file?.type || null,
       content_base64: file ? await fileToBase64(file) : null,
-      actor: "local-admin",
+      actor: getActiveRole().userId,
     });
   });
   const changeForm = qs("#changeOrderForm");
   if (changeForm) changeForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const file = changeForm.elements.file.files[0];
     await runLegacyAction("change-orders", {
       title: changeForm.elements.title.value,
+      stage: changeForm.elements.stage.value,
       reason: changeForm.elements.reason.value,
       amount_delta: Number(changeForm.elements.amount_delta.value),
       schedule_delta_days: Number(changeForm.elements.schedule_delta_days.value),
-      actor: "local-admin",
+      file_name: file?.name,
+      mime_type: file?.type,
+      content_base64: file ? await fileToBase64(file) : null,
+      actor: getActiveRole().userId,
     });
   });
+  qsa(".change-payment-form").forEach((form) => form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = form.elements.file.files[0];
+    await runLegacyAction(`change-orders/${encodeURIComponent(form.dataset.changeId)}/payment-proof`, { amount: Number(form.elements.amount.value), file_name: file?.name, mime_type: file?.type, content_base64: file ? await fileToBase64(file) : null, actor: getActiveRole().userId });
+  }));
+  qsa(".change-confirmation-action").forEach((button) => button.addEventListener("click", async () => {
+    await runLegacyAction(`change-orders/${encodeURIComponent(button.dataset.changeId)}/confirmations/${encodeURIComponent(button.dataset.party)}`, { expected_version: Number(button.dataset.version), actor: getActiveRole().userId });
+  }));
+  qsa(".change-file-download").forEach((button) => button.addEventListener("click", () => downloadLegacyFile(`change-orders/${encodeURIComponent(button.dataset.changeId)}`, button.dataset.kind)));
   const messageForm = qs("#messageForm");
   if (messageForm) messageForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     await runLegacyAction("messages", {
       category: messageForm.elements.category.value,
       body: messageForm.elements.body.value,
-      actor: "local-admin",
+      actor: getActiveRole().userId,
       actor_role: activeRole,
     });
   });
@@ -1848,8 +2087,8 @@ async function advanceCase() {
     ? "governance/start"
     : "gates/evaluate";
   const body = project.stage === "INTAKE_pending"
-    ? { expected_version: project.version, actor: "local-admin", actor_role: activeRole, reason: "Direct intake approved for D1 design preparation" }
-    : { expected_version: project.version, actor: "local-admin", actor_role: activeRole, outcome: "Passed", reason: "Evidence reviewed in project workspace" };
+    ? { expected_version: project.version, actor: getActiveRole().userId, actor_role: activeRole, reason: "Direct intake approved for D1 design preparation" }
+    : { expected_version: project.version, actor: getActiveRole().userId, actor_role: activeRole, outcome: "Passed", reason: "Evidence reviewed in project workspace" };
   try {
     const response = await fetch(`${apiOrigin}/api/v1/isafe/cases/${encodeURIComponent(project.id)}/${route}`, {
       method: "POST",
@@ -1894,13 +2133,19 @@ function initFromUrl() {
 
   if (projectCases.some((item) => item.id === caseId)) activeCaseId = caseId;
   if (roles.some((item) => item.id === role)) activeRole = role;
-  setView(views[view] ? view : "overview");
+  setView(views[view] ? view : "home");
+  if (params.get("newCase") === "1") {
+    const creator = qs("#caseCreator");
+    if (creator) creator.hidden = false;
+  }
 }
 
 async function init() {
   qsa(".nav-item").forEach((button) => {
     button.addEventListener("click", () => setView(button.dataset.view));
   });
+  setupWorkbench();
+  setupDirectIntake();
 
   const demoCycleBtn = qs("#demoCycleBtn");
   if (demoCycleBtn) {
@@ -1953,9 +2198,10 @@ async function init() {
   renderLevels();
   renderR5Baseline();
   renderGovernanceRegistry();
+  initFromUrl();
   await loadProjectCases();
   renderProjectWorkspace();
-  initFromUrl();
+  renderWorkbench();
   await loadLegacyWorkspace();
 }
 
