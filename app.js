@@ -2134,6 +2134,14 @@ function initFromUrl() {
   if (projectCases.some((item) => item.id === caseId)) activeCaseId = caseId;
   if (roles.some((item) => item.id === role)) activeRole = role;
   setView(views[view] ? view : "home");
+  if (params.get("intake") === "1") {
+    setView("home");
+    const intakePanel = qs("#directIntakePanel");
+    if (intakePanel) {
+      intakePanel.hidden = false;
+      window.setTimeout(() => intakePanel.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    }
+  }
   if (params.get("newCase") === "1") {
     const creator = qs("#caseCreator");
     if (creator) creator.hidden = false;
