@@ -34,12 +34,16 @@ const r5Contract = {
 const hasConfiguredApi = Boolean(window.ISAFE_CONFIG?.apiOrigin);
 const isLocalRuntime = ["127.0.0.1", "localhost"].includes(window.location.hostname);
 const localApiOverride = isLocalRuntime ? new URLSearchParams(window.location.search).get("apiOrigin") : null;
-const apiOrigin = window.ISAFE_CONFIG?.apiOrigin || localApiOverride || "http://127.0.0.1:4180";
+const apiTarget = (() => { try { return new URL(window.ISAFE_CONFIG?.apiOrigin || localApiOverride || (isLocalRuntime ? "http://127.0.0.1:4180" : window.location.origin)); } catch { return null; } })();
+const validApiOrigin = Boolean(apiTarget && ['http:', 'https:'].includes(apiTarget.protocol) && !apiTarget.username && !apiTarget.password && !apiTarget.search && !apiTarget.hash && apiTarget.pathname === '/');
+const localApiTarget = ['127.0.0.1', 'localhost', '[::1]'].includes(apiTarget?.hostname);
+const apiOrigin = apiTarget?.origin || window.location.origin;
 const forceStaticPreview = new URLSearchParams(window.location.search).get("static") === "1";
-const apiEnabled = !forceStaticPreview && (hasConfiguredApi || isLocalRuntime);
+const apiEnabled = validApiOrigin && !forceStaticPreview && (hasConfiguredApi || isLocalRuntime) && (isLocalRuntime || (apiTarget.protocol === 'https:' && !localApiTarget));
 const browserTraceId = `web-${globalThis.crypto?.randomUUID?.() || Date.now()}`;
 
 function apiContextHeaders({ tenantId = "tenant_local_tigi", organizationId = "org_local_headquarter", purpose, idempotencyKey, authorize = false, identity } = {}) {
+  if (!apiEnabled || !isLocalRuntime || !localApiTarget) throw new Error('正式登入與伺服器端權限尚未配置，已阻擋開發身分傳送；此部署僅提供靜態預覽。');
   const headers = {
     "X-Tenant-Id": tenantId,
     "X-Organization-Id": organizationId,
